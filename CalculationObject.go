@@ -35,7 +35,7 @@ func (cop *CalculationObjectPaillier) KeyGen() error {
 }
 
 func (cop *CalculationObjectPaillier) Encrypt(plaintext int) error {
-	c, e := cop.PublicKey.Encrypt(big.NewInt(int64(plaintext)), rand.Reader)
+	c, e := cop.PrivateKey.Encrypt(big.NewInt(int64(plaintext)), rand.Reader)
 	if e != nil {
 		return e
 	}

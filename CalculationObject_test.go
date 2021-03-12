@@ -17,3 +17,18 @@ func TestCalculationObjectPaillier_KeyGen(t *testing.T) {
 		}
 	}
 }
+
+func TestCalculationObjectPaillier_Encrypt(t *testing.T) {
+	node := CtNode{
+		Co:             CalculationObjectPaillier{},
+		Ids:            nil,
+		ReachableNodes: nil,
+	}
+
+	_ = node.Co.KeyGen()
+	e := node.Co.Encrypt(24)
+	if e != nil {
+		fmt.Print(e.Error())
+		t.Fail()
+	}
+}
