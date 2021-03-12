@@ -1,8 +1,10 @@
 package DCP
 
 import (
+	"crypto/rand"
 	"github.com/didiercrunch/paillier"
 	"math/big"
+	"time"
 )
 
 type ICalculationObject interface {
@@ -14,19 +16,20 @@ type ICalculationObject interface {
 }
 
 type CalculationObjectPaillier struct {
-	counter int
-	privateKey *paillier.PrivateKey
-	publicKey paillier.PublicKey
-	Cipher paillier.Cypher
+	Counter    int
+	PrivateKey *paillier.PrivateKey
+	PublicKey  paillier.PublicKey
+	Cipher     *paillier.Cypher
 }
 
 func (cop *CalculationObjectPaillier) KeyGen() {
-	cop.privateKey = paillier.CreatePrivateKey(big.NewInt(1), big.NewInt(3))
-	cop.publicKey = cop.privateKey.PublicKey
+	p1, p2, _ := paillier.GenerateSafePrime(512, 1, 1 * time.Second, rand.Reader)
+	cop.PrivateKey = paillier.CreatePrivateKey(p1, p2)
+	cop.PublicKey = cop.PrivateKey.PublicKey
 }
 
-func (cop CalculationObjectPaillier) Encrypt() {
-	
+func (cop *CalculationObjectPaillier) Encrypt() {
+	cop.Cipher, _ = cop.PublicKey.Encrypt(big.NewInt(0), rand.Reader)
 }
 
 func (cop CalculationObjectPaillier) Decrypt() {
