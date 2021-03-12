@@ -1,4 +1,4 @@
-module DCP
+module github.com/DCP-DCT/DCP
 
 go 1.13
 
