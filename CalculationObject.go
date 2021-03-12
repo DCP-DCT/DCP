@@ -12,7 +12,7 @@ type ICalculationObject interface {
 	Mul()
 	Encrypt()
 	Decrypt()
-	KeyGen()
+	KeyGen() error
 }
 
 type CalculationObjectPaillier struct {
@@ -22,10 +22,16 @@ type CalculationObjectPaillier struct {
 	Cipher     *paillier.Cypher
 }
 
-func (cop *CalculationObjectPaillier) KeyGen() {
-	p1, p2, _ := paillier.GenerateSafePrime(512, 1, 1 * time.Second, rand.Reader)
+func (cop *CalculationObjectPaillier) KeyGen() error {
+	p1, p2, e := paillier.GenerateSafePrime(128, 1, 1 * time.Second, rand.Reader)
+	if e != nil {
+		return e
+	}
+
 	cop.PrivateKey = paillier.CreatePrivateKey(p1, p2)
 	cop.PublicKey = cop.PrivateKey.PublicKey
+
+	return nil
 }
 
 func (cop *CalculationObjectPaillier) Encrypt() {
