@@ -20,7 +20,7 @@ type CalculationObjectPaillier struct {
 	Cipher paillier.Cypher
 }
 
-func (cop CalculationObjectPaillier) KeyGen() {
+func (cop *CalculationObjectPaillier) KeyGen() {
 	cop.privateKey = paillier.CreatePrivateKey(big.NewInt(1), big.NewInt(3))
 	cop.publicKey = cop.privateKey.PublicKey
 }
