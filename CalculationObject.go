@@ -10,7 +10,7 @@ import (
 type ICalculationObject interface {
 	Add()
 	Mul()
-	Encrypt()
+	Encrypt(int)
 	Decrypt()
 	KeyGen() error
 }
@@ -34,8 +34,8 @@ func (cop *CalculationObjectPaillier) KeyGen() error {
 	return nil
 }
 
-func (cop *CalculationObjectPaillier) Encrypt() {
-	cop.Cipher, _ = cop.PublicKey.Encrypt(big.NewInt(0), rand.Reader)
+func (cop *CalculationObjectPaillier) Encrypt(plaintext int) {
+	cop.Cipher, _ = cop.PublicKey.Encrypt(big.NewInt(int64(plaintext)), rand.Reader)
 }
 
 func (cop CalculationObjectPaillier) Decrypt() {
