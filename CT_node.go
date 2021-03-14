@@ -27,10 +27,9 @@ func InitRoutine(fn Prepare, node *CtNode) error {
 }
 
 func (node *CtNode) Broadcast() {
+	fmt.Printf("Broadcasting triggered in node %s\n", node.Id)
 	for _, rn := range node.ReachableNodes {
-		fmt.Printf("%T\n", rn)
 		go func(rn chan CalculationObjectPaillier) {
-			fmt.Println("Broadcasting")
 			rn <- node.Co
 		}(rn)
 	}
@@ -40,7 +39,7 @@ func (node *CtNode) Listen() {
 	go func() {
 		for {
 			co := <- node.Channel
-			fmt.Printf("Listen triggered in node %s", node.Id)
+			fmt.Printf("Listen triggered in node %s\n", node.Id)
 			node.HandleCalculationObject(co)
 		}
 	}()
