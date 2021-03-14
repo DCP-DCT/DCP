@@ -1,6 +1,9 @@
 package DCP
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/google/uuid"
+)
 
 type ICtNode interface {
 	InitRoutine(Prepare) error
@@ -11,6 +14,7 @@ type ICtNode interface {
 }
 
 type CtNode struct {
+	Id uuid.UUID
 	Co CalculationObjectPaillier
 	Ids []string
 	ReachableNodes []chan CalculationObjectPaillier

@@ -26,7 +26,7 @@ func TestCalculationObjectPaillier_Encrypt(t *testing.T) {
 	}
 
 	_ = node.Co.KeyGen()
-	e := node.Co.Encrypt(24)
+	_, e := node.Co.Encrypt(24)
 	if e != nil {
 		fmt.Print(e.Error())
 		t.Fail()
