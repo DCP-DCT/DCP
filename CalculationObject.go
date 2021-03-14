@@ -8,7 +8,7 @@ import (
 )
 
 type IEval interface {
-	Mul()
+	Add()
 }
 
 type ICalculationObject interface {
@@ -27,7 +27,12 @@ type CalculationObjectPaillier struct {
 }
 
 func (cop *CalculationObjectPaillier) KeyGen() error {
-	p1, p2, e := paillier.GenerateSafePrime(128, 1, 1 * time.Second, rand.Reader)
+	p1, _, e := paillier.GenerateSafePrime(128, 1, 1 * time.Second, rand.Reader)
+	if e != nil {
+		return e
+	}
+
+	p2, _, e := paillier.GenerateSafePrime(128, 1, 1 * time.Second, rand.Reader)
 	if e != nil {
 		return e
 	}
@@ -49,4 +54,8 @@ func (cop *CalculationObjectPaillier) Encrypt(plaintext int) (*paillier.Cypher, 
 
 func (cop CalculationObjectPaillier) Decrypt() {
 
+}
+
+func (cop *CalculationObjectPaillier) Add(cipher *paillier.Cypher) {
+	cop.Cipher = cop.PrivateKey.Add(cop.Cipher, cipher)
 }

@@ -20,7 +20,7 @@ func TestCalculationObjectPaillier_KeyGen(t *testing.T) {
 
 func TestCalculationObjectPaillier_Encrypt(t *testing.T) {
 	node := CtNode{
-		Co:             CalculationObjectPaillier{},
+		Co:             &CalculationObjectPaillier{},
 		Ids:            nil,
 		ReachableNodes: nil,
 	}

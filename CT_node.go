@@ -15,10 +15,10 @@ type ICtNode interface {
 
 type CtNode struct {
 	Id uuid.UUID
-	Co CalculationObjectPaillier
+	Co *CalculationObjectPaillier
 	Ids []string
-	ReachableNodes []chan CalculationObjectPaillier
-	Channel chan CalculationObjectPaillier
+	ReachableNodes []chan *CalculationObjectPaillier
+	Channel chan *CalculationObjectPaillier
 }
 
 func InitRoutine(fn Prepare, node *CtNode) error {
@@ -29,7 +29,7 @@ func InitRoutine(fn Prepare, node *CtNode) error {
 func (node *CtNode) Broadcast() {
 	fmt.Printf("Broadcasting triggered in node %s\n", node.Id)
 	for _, rn := range node.ReachableNodes {
-		go func(rn chan CalculationObjectPaillier) {
+		go func(rn chan *CalculationObjectPaillier) {
 			rn <- node.Co
 		}(rn)
 	}
@@ -45,7 +45,7 @@ func (node *CtNode) Listen() {
 	}()
 }
 
-func (node *CtNode) HandleCalculationObject(co CalculationObjectPaillier)  {
+func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier)  {
 	// Run Eval
 	// Broadcast
 
@@ -53,9 +53,20 @@ func (node *CtNode) HandleCalculationObject(co CalculationObjectPaillier)  {
 
 	// Check counter
 
-	//idLen := len(node.Ids)
+	idLen := len(node.Ids)
 
-	//cipher, e := co.Encrypt(idLen)
+	cipher, e := co.Encrypt(idLen)
+	if e != nil {
+		// No-op
+		fmt.Println(e.Error())
+		return
+	}
+
+	// Add to co cipher
+	co.Add(cipher)
+
+	msg := co.PrivateKey.Decrypt(co.Cipher)
+	fmt.Println(msg)
 }
 
 func (node CtNode) Print() {
