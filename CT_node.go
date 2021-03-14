@@ -14,7 +14,7 @@ type CtNode struct {
 	Co CalculationObjectPaillier
 	Ids []string
 	ReachableNodes []chan CalculationObjectPaillier
-	channel chan CalculationObjectPaillier
+	Channel chan CalculationObjectPaillier
 }
 
 func InitRoutine(fn Prepare, node *CtNode) error {
@@ -35,7 +35,7 @@ func (node *CtNode) Broadcast() {
 func (node *CtNode) Listen() {
 	go func() {
 		for {
-			co := <- node.channel
+			co := <- node.Channel
 			fmt.Println("Listen triggered")
 			node.HandleCalculationObject(co)
 		}
