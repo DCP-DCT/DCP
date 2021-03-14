@@ -40,7 +40,7 @@ func (node *CtNode) Listen() {
 	go func() {
 		for {
 			co := <- node.Channel
-			fmt.Println("Listen triggered")
+			fmt.Printf("Listen triggered in node %s", node.Id)
 			node.HandleCalculationObject(co)
 		}
 	}()
