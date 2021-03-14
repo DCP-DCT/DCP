@@ -7,6 +7,10 @@ import (
 	"time"
 )
 
+type IEval interface {
+	Mul()
+}
+
 type ICalculationObject interface {
 	Add()
 	Mul()
@@ -34,18 +38,15 @@ func (cop *CalculationObjectPaillier) KeyGen() error {
 	return nil
 }
 
-func (cop *CalculationObjectPaillier) Encrypt(plaintext int) error {
+func (cop *CalculationObjectPaillier) Encrypt(plaintext int) (*paillier.Cypher, error) {
 	c, e := cop.PrivateKey.Encrypt(big.NewInt(int64(plaintext)), rand.Reader)
 	if e != nil {
-		return e
+		return nil, e
 	}
 
-	cop.Cipher = c
-
-	return nil
+	return c, nil
 }
 
 func (cop CalculationObjectPaillier) Decrypt() {
 
 }
-
