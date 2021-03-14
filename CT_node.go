@@ -17,8 +17,9 @@ type CtNode struct {
 	channel chan CalculationObjectPaillier
 }
 
-func (node *CtNode) InitRoutine(fn Prepare) {
-	fn(node)
+func InitRoutine(fn Prepare, node *CtNode) error {
+	e := fn(node)
+	return e
 }
 
 func (node *CtNode) Broadcast() {

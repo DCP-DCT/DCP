@@ -1,6 +1,6 @@
 package DCP
 
-type Prepare func(*CtNode)
+type Prepare func(*CtNode) error
 
 func PrepareIdLenCalculation(node *CtNode) error {
 	plain := len(node.Ids)
