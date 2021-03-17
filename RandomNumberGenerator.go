@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/big"
 )
+
 // https://play.golang.org/p/XXiTIpRBAu
 const max = 1000000
 

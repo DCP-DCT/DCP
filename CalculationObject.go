@@ -2,49 +2,52 @@ package DCP
 
 import (
 	"crypto/rand"
+	"fmt"
 	"github.com/didiercrunch/paillier"
 	"math/big"
 	"time"
 )
 
 type IEval interface {
-	Add()
+	Add(cipher interface{})
 }
 
 type ICalculationObject interface {
 	Add()
 	Mul()
 	Encrypt(int) error
-	Decrypt()
+	Decrypt() *big.Int
 	KeyGen() error
+	Serialize()
 }
 
 type CalculationObjectPaillier struct {
 	Counter    int
-	PrivateKey *paillier.PrivateKey
-	PublicKey  paillier.PublicKey
+	privateKey *paillier.PrivateKey
+	PublicKey  *paillier.PublicKey
 	Cipher     *paillier.Cypher
 }
 
 func (cop *CalculationObjectPaillier) KeyGen() error {
-	p1, _, e := paillier.GenerateSafePrime(128, 1, 1 * time.Second, rand.Reader)
+	p1, _, e := paillier.GenerateSafePrime(128, 1, 1*time.Second, rand.Reader)
 	if e != nil {
 		return e
 	}
 
-	p2, _, e := paillier.GenerateSafePrime(128, 1, 1 * time.Second, rand.Reader)
+	p2, _, e := paillier.GenerateSafePrime(128, 1, 1*time.Second, rand.Reader)
 	if e != nil {
 		return e
 	}
 
-	cop.PrivateKey = paillier.CreatePrivateKey(p1, p2)
-	cop.PublicKey = cop.PrivateKey.PublicKey
+	cop.privateKey = paillier.CreatePrivateKey(p1, p2)
+	cop.PublicKey = &cop.privateKey.PublicKey
 
 	return nil
 }
 
 func (cop *CalculationObjectPaillier) Encrypt(plaintext int) (*paillier.Cypher, error) {
-	c, e := cop.PrivateKey.Encrypt(big.NewInt(int64(plaintext)), rand.Reader)
+	c, e := cop.PublicKey.Encrypt(big.NewInt(int64(plaintext)), rand.Reader)
+
 	if e != nil {
 		return nil, e
 	}
@@ -52,10 +55,25 @@ func (cop *CalculationObjectPaillier) Encrypt(plaintext int) (*paillier.Cypher, 
 	return c, nil
 }
 
-func (cop CalculationObjectPaillier) Decrypt() {
-
+func (cop *CalculationObjectPaillier) Decrypt(cipher *paillier.Cypher) *big.Int {
+	return cop.privateKey.Decrypt(cipher)
 }
 
 func (cop *CalculationObjectPaillier) Add(cipher *paillier.Cypher) {
-	cop.Cipher = cop.PrivateKey.Add(cop.Cipher, cipher)
+	if cop.Cipher == nil {
+		fmt.Println("Own Cipher nil")
+		cop.Cipher = cipher
+		return
+	}
+
+	if cipher == nil {
+		fmt.Println("Supplied Cipher nil")
+		return
+	}
+
+	cop.Cipher = cop.PublicKey.Add(cop.Cipher, cipher)
+}
+
+func (cop *CalculationObjectPaillier) Serialize() string {
+	return ""
 }

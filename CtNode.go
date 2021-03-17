@@ -14,11 +14,11 @@ type ICtNode interface {
 }
 
 type CtNode struct {
-	Id uuid.UUID
-	Co *CalculationObjectPaillier
-	Ids []string
+	Id             uuid.UUID
+	Co             *CalculationObjectPaillier
+	Ids            []string
 	ReachableNodes []chan *CalculationObjectPaillier
-	Channel chan *CalculationObjectPaillier
+	Channel        chan *CalculationObjectPaillier
 }
 
 func InitRoutine(fn Prepare, node *CtNode) error {
@@ -38,20 +38,24 @@ func (node *CtNode) Broadcast() {
 func (node *CtNode) Listen() {
 	go func() {
 		for {
-			co := <- node.Channel
+			co := <-node.Channel
 			fmt.Printf("Listen triggered in node %s\n", node.Id)
 			node.HandleCalculationObject(co)
 		}
 	}()
 }
 
-func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier)  {
+func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
 	// Run Eval
 	// Broadcast
 
 	// Check PK
 
 	// Check counter
+
+	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
+		fmt.Println("Public key match")
+	}
 
 	idLen := len(node.Ids)
 
@@ -64,11 +68,11 @@ func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier)  {
 
 	// Add to co cipher
 	co.Add(cipher)
+	co.Counter = co.Counter + 1
 
-	msg := co.PrivateKey.Decrypt(co.Cipher)
-	fmt.Println(msg)
+	node.Broadcast()
 }
 
 func (node CtNode) Print() {
-	fmt.Printf("Counter %d, PK %s, SK %s\n", node.Co.Counter, node.Co.PrivateKey, node.Co.PublicKey)
+	fmt.Printf("Counter %d, PK %s, SK %s\n", node.Co.Counter, node.Co.privateKey, node.Co.PublicKey)
 }
