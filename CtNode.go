@@ -26,11 +26,19 @@ func InitRoutine(fn Prepare, node *CtNode) error {
 	return e
 }
 
-func (node *CtNode) Broadcast() {
+func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	fmt.Printf("Broadcasting triggered in node %s\n", node.Id)
+
+	var objToBroadcast *CalculationObjectPaillier
+	if externalCo != nil {
+		objToBroadcast = externalCo
+	} else {
+		objToBroadcast = node.Co
+	}
+
 	for _, rn := range node.ReachableNodes {
 		go func(rn chan *CalculationObjectPaillier) {
-			rn <- node.Co
+			rn <- objToBroadcast
 		}(rn)
 	}
 }
@@ -55,6 +63,14 @@ func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		fmt.Println("Public key match")
+		if co.Counter > nodeVisitDecryptThreshold {
+			fmt.Println("Calculation process finished, updating internal CalculationObject")
+			node.Co = co
+		}
+
+		fmt.Println("Too few participants to satisfy privacy, abort Calculation process")
+		// Too few participants to satisfy privacy, abort Calculation process
+		return
 	}
 
 	idLen := len(node.Ids)
@@ -70,7 +86,7 @@ func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
 	co.Add(cipher)
 	co.Counter = co.Counter + 1
 
-	node.Broadcast()
+	node.Broadcast(co)
 }
 
 func (node CtNode) Print() {

@@ -54,7 +54,7 @@ func TestCtChannel(t *testing.T) {
 
 	node1.Listen()
 	node2.Listen()
-	node1.Broadcast()
+	node1.Broadcast(nil)
 
-	time.Sleep(500 * time.Nanosecond)
+	time.Sleep(1 * time.Millisecond)
 }
