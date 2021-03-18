@@ -29,7 +29,7 @@ func TestCtChannel(t *testing.T) {
 			Cipher:    nil,
 		},
 		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: nil,
+		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
 		Channel:        make(chan *CalculationObjectPaillier),
 		HandledCoIds:   make(map[uuid.UUID]struct{}),
 	}
@@ -43,7 +43,7 @@ func TestCtChannel(t *testing.T) {
 			Cipher:    nil,
 		},
 		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: nil,
+		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
 		Channel:        make(chan *CalculationObjectPaillier),
 		HandledCoIds:   make(map[uuid.UUID]struct{}),
 	}
@@ -51,8 +51,8 @@ func TestCtChannel(t *testing.T) {
 	_ = node1.Co.KeyGen()
 	_ = node2.Co.KeyGen()
 
-	node1.ReachableNodes = append(node1.ReachableNodes, node2.Channel)
-	node2.ReachableNodes = append(node2.ReachableNodes, node1.Channel)
+	node1.ReachableNodes[node2.Channel] = struct{}{}
+	node2.ReachableNodes[node1.Channel] = struct{}{}
 
 	_ = InitRoutine(PrepareIdLenCalculation, node1)
 
@@ -73,7 +73,7 @@ func TestAbortAlreadyHandled(t *testing.T) {
 			Cipher:    nil,
 		},
 		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: nil,
+		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
 		Channel:        make(chan *CalculationObjectPaillier),
 		HandledCoIds:   make(map[uuid.UUID]struct{}),
 	}
@@ -87,7 +87,7 @@ func TestAbortAlreadyHandled(t *testing.T) {
 			Cipher:    nil,
 		},
 		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: nil,
+		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
 		Channel:        make(chan *CalculationObjectPaillier),
 		HandledCoIds:   make(map[uuid.UUID]struct{}),
 	}
@@ -101,7 +101,7 @@ func TestAbortAlreadyHandled(t *testing.T) {
 			Cipher:    nil,
 		},
 		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: nil,
+		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
 		Channel:        make(chan *CalculationObjectPaillier),
 		HandledCoIds:   make(map[uuid.UUID]struct{}),
 	}
@@ -110,9 +110,9 @@ func TestAbortAlreadyHandled(t *testing.T) {
 	_ = node2.Co.KeyGen()
 	_ = node3.Co.KeyGen()
 
-	node1.ReachableNodes = append(node1.ReachableNodes, node2.Channel)
-	node2.ReachableNodes = append(node2.ReachableNodes, node3.Channel)
-	node3.ReachableNodes = append(node3.ReachableNodes, node2.Channel)
+	node1.ReachableNodes[node2.Channel] = struct{}{}
+	node2.ReachableNodes[node3.Channel] = struct{}{}
+	node3.ReachableNodes[node2.Channel] = struct{}{}
 
 	_ = InitRoutine(PrepareIdLenCalculation, node1)
 

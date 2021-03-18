@@ -17,7 +17,7 @@ type CtNode struct {
 	Id             uuid.UUID
 	Co             *CalculationObjectPaillier
 	Ids            []string
-	ReachableNodes []chan *CalculationObjectPaillier
+	ReachableNodes map[chan *CalculationObjectPaillier]struct{}
 	Channel        chan *CalculationObjectPaillier
 	HandledCoIds   map[uuid.UUID]struct{}
 }
@@ -37,7 +37,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 		objToBroadcast = node.Co
 	}
 
-	for _, rn := range node.ReachableNodes {
+	for rn, _ := range node.ReachableNodes {
 		go func(rn chan *CalculationObjectPaillier) {
 			rn <- objToBroadcast
 		}(rn)
@@ -66,7 +66,7 @@ func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
 			close(node.Channel)
 		}
 
-		fmt.Println("Too few participants to satisfy privacy, abort Calculation process")
+		fmt.Println("Too few participants to satisfy privacy. Still listening")
 		// Too few participants to satisfy privacy, abort Calculation process
 		return
 	}
