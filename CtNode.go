@@ -19,6 +19,7 @@ type CtNode struct {
 	Ids            []string
 	ReachableNodes []chan *CalculationObjectPaillier
 	Channel        chan *CalculationObjectPaillier
+	HandledCoIds   map[uuid.UUID]struct{}
 }
 
 func InitRoutine(fn Prepare, node *CtNode) error {
@@ -57,19 +58,21 @@ func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
 	// Run Eval
 	// Broadcast
 
-	// Check PK
-
-	// Check counter
-
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		fmt.Println("Public key match")
 		if co.Counter > nodeVisitDecryptThreshold {
 			fmt.Println("Calculation process finished, updating internal CalculationObject")
 			node.Co = co
+			close(node.Channel)
 		}
 
 		fmt.Println("Too few participants to satisfy privacy, abort Calculation process")
 		// Too few participants to satisfy privacy, abort Calculation process
+		return
+	}
+
+	if _, exist := node.HandledCoIds[co.Id]; exist {
+		fmt.Printf("Calculation object with ID: %s already handled\n", co.Id.String())
 		return
 	}
 
@@ -86,6 +89,7 @@ func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
 	co.Add(cipher)
 	co.Counter = co.Counter + 1
 
+	node.HandledCoIds[co.Id] = struct{}{}
 	node.Broadcast(co)
 }
 

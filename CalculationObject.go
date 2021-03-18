@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"github.com/didiercrunch/paillier"
+	"github.com/google/uuid"
 	"math/big"
 	"time"
 )
@@ -22,6 +23,7 @@ type ICalculationObject interface {
 }
 
 type CalculationObjectPaillier struct {
+	Id         uuid.UUID
 	Counter    int
 	privateKey *paillier.PrivateKey
 	PublicKey  *paillier.PublicKey

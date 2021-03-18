@@ -2,6 +2,7 @@ package DCP
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"math/big"
 	"testing"
 )
@@ -11,9 +12,12 @@ func TestCalculationObjectPaillier_KeyGen(t *testing.T) {
 
 	for _, node := range nodes {
 		node = CtNode{
+			Id:             uuid.New(),
 			Co:             &CalculationObjectPaillier{},
 			Ids:            nil,
 			ReachableNodes: nil,
+			Channel:        nil,
+			HandledCoIds:   nil,
 		}
 
 		e := node.Co.KeyGen()
@@ -27,9 +31,12 @@ func TestCalculationObjectPaillier_KeyGen(t *testing.T) {
 
 func TestCalculationObjectPaillier_Encrypt(t *testing.T) {
 	node := CtNode{
+		Id:             uuid.New(),
 		Co:             &CalculationObjectPaillier{},
 		Ids:            nil,
 		ReachableNodes: nil,
+		Channel:        nil,
+		HandledCoIds:   nil,
 	}
 
 	e := node.Co.KeyGen()
