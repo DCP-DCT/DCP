@@ -23,11 +23,11 @@ type ICalculationObject interface {
 }
 
 type CalculationObjectPaillier struct {
-	Id         uuid.UUID
-	Counter    int
+	Id         uuid.UUID `json:"id"`
+	Counter    int       `json:"counter"`
 	privateKey *paillier.PrivateKey
-	PublicKey  *paillier.PublicKey
-	Cipher     *paillier.Cypher
+	PublicKey  *paillier.PublicKey `json:"public_key"`
+	Cipher     *paillier.Cypher    `json:"cipher"`
 }
 
 func (cop *CalculationObjectPaillier) KeyGen() error {

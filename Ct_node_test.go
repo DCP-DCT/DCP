@@ -8,18 +8,16 @@ import (
 
 func TestCtPrint(t *testing.T) {
 	node := CtNode{
-		Id:             uuid.New(),
-		Co:             &CalculationObjectPaillier{},
-		Ids:            nil,
-		ReachableNodes: nil,
-		Channel:        nil,
+		Id:  uuid.New(),
+		Co:  &CalculationObjectPaillier{},
+		Ids: nil,
 	}
 	_ = node.Co.KeyGen()
 
 	node.Print()
 }
 
-func TestCtChannel(t *testing.T) {
+func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 	node1 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
@@ -28,10 +26,13 @@ func TestCtChannel(t *testing.T) {
 			PublicKey: nil,
 			Cipher:    nil,
 		},
-		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
-		Channel:        make(chan *CalculationObjectPaillier),
-		HandledCoIds:   make(map[uuid.UUID]struct{}),
+		Ids:          []string{uuid.New().String(), uuid.New().String()},
+		HandledCoIds: make(map[uuid.UUID]struct{}),
+		TransportLayer: &ChannelTransport{
+			DataCh:         make(chan *[]byte),
+			StopCh:         make(chan struct{}),
+			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+		},
 	}
 
 	node2 := &CtNode{
@@ -42,17 +43,20 @@ func TestCtChannel(t *testing.T) {
 			PublicKey: nil,
 			Cipher:    nil,
 		},
-		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
-		Channel:        make(chan *CalculationObjectPaillier),
-		HandledCoIds:   make(map[uuid.UUID]struct{}),
+		Ids:          []string{uuid.New().String(), uuid.New().String()},
+		HandledCoIds: make(map[uuid.UUID]struct{}),
+		TransportLayer: &ChannelTransport{
+			DataCh:         make(chan *[]byte),
+			StopCh:         make(chan struct{}),
+			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+		},
 	}
 
 	_ = node1.Co.KeyGen()
 	_ = node2.Co.KeyGen()
 
-	node1.ReachableNodes[node2.Channel] = struct{}{}
-	node2.ReachableNodes[node1.Channel] = struct{}{}
+	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = node2.TransportLayer.StopCh
+	node2.TransportLayer.ReachableNodes[node1.TransportLayer.DataCh] = node1.TransportLayer.StopCh
 
 	_ = InitRoutine(PrepareIdLenCalculation, node1)
 
@@ -63,7 +67,7 @@ func TestCtChannel(t *testing.T) {
 	time.Sleep(1 * time.Millisecond)
 }
 
-func TestAbortAlreadyHandled(t *testing.T) {
+func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 	node1 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
@@ -72,10 +76,13 @@ func TestAbortAlreadyHandled(t *testing.T) {
 			PublicKey: nil,
 			Cipher:    nil,
 		},
-		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
-		Channel:        make(chan *CalculationObjectPaillier),
-		HandledCoIds:   make(map[uuid.UUID]struct{}),
+		Ids:          []string{uuid.New().String(), uuid.New().String()},
+		HandledCoIds: make(map[uuid.UUID]struct{}),
+		TransportLayer: &ChannelTransport{
+			DataCh:         make(chan *[]byte),
+			StopCh:         make(chan struct{}),
+			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+		},
 	}
 
 	node2 := &CtNode{
@@ -86,10 +93,13 @@ func TestAbortAlreadyHandled(t *testing.T) {
 			PublicKey: nil,
 			Cipher:    nil,
 		},
-		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
-		Channel:        make(chan *CalculationObjectPaillier),
-		HandledCoIds:   make(map[uuid.UUID]struct{}),
+		Ids:          []string{uuid.New().String(), uuid.New().String()},
+		HandledCoIds: make(map[uuid.UUID]struct{}),
+		TransportLayer: &ChannelTransport{
+			DataCh:         make(chan *[]byte),
+			StopCh:         make(chan struct{}),
+			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+		},
 	}
 
 	node3 := &CtNode{
@@ -100,19 +110,22 @@ func TestAbortAlreadyHandled(t *testing.T) {
 			PublicKey: nil,
 			Cipher:    nil,
 		},
-		Ids:            []string{uuid.New().String(), uuid.New().String()},
-		ReachableNodes: make(map[chan *CalculationObjectPaillier]struct{}),
-		Channel:        make(chan *CalculationObjectPaillier),
-		HandledCoIds:   make(map[uuid.UUID]struct{}),
+		Ids:          []string{uuid.New().String(), uuid.New().String()},
+		HandledCoIds: make(map[uuid.UUID]struct{}),
+		TransportLayer: &ChannelTransport{
+			DataCh:         make(chan *[]byte),
+			StopCh:         make(chan struct{}),
+			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+		},
 	}
 
 	_ = node1.Co.KeyGen()
 	_ = node2.Co.KeyGen()
 	_ = node3.Co.KeyGen()
 
-	node1.ReachableNodes[node2.Channel] = struct{}{}
-	node2.ReachableNodes[node3.Channel] = struct{}{}
-	node3.ReachableNodes[node2.Channel] = struct{}{}
+	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = node2.TransportLayer.StopCh
+	node2.TransportLayer.ReachableNodes[node3.TransportLayer.DataCh] = node3.TransportLayer.StopCh
+	node3.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = node2.TransportLayer.StopCh
 
 	_ = InitRoutine(PrepareIdLenCalculation, node1)
 
@@ -122,4 +135,59 @@ func TestAbortAlreadyHandled(t *testing.T) {
 	node1.Broadcast(nil)
 
 	time.Sleep(1 * time.Millisecond)
+}
+
+func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
+	node1 := &CtNode{
+		Id: uuid.New(),
+		Co: &CalculationObjectPaillier{
+			Id:        uuid.New(),
+			Counter:   nodeVisitDecryptThreshold - 1,
+			PublicKey: nil,
+			Cipher:    nil,
+		},
+		Ids:          []string{uuid.New().String(), uuid.New().String()},
+		HandledCoIds: make(map[uuid.UUID]struct{}),
+		TransportLayer: &ChannelTransport{
+			DataCh:         make(chan *[]byte),
+			StopCh:         make(chan struct{}),
+			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+		},
+	}
+
+	node2 := &CtNode{
+		Id: uuid.New(),
+		Co: &CalculationObjectPaillier{
+			Id:        uuid.New(),
+			Counter:   0,
+			PublicKey: nil,
+			Cipher:    nil,
+		},
+		Ids:          []string{uuid.New().String(), uuid.New().String()},
+		HandledCoIds: make(map[uuid.UUID]struct{}),
+		TransportLayer: &ChannelTransport{
+			DataCh:         make(chan *[]byte),
+			StopCh:         make(chan struct{}),
+			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+		},
+	}
+
+	_ = node1.Co.KeyGen()
+	_ = node2.Co.KeyGen()
+
+	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = node2.TransportLayer.StopCh
+	node2.TransportLayer.ReachableNodes[node1.TransportLayer.DataCh] = node1.TransportLayer.StopCh
+
+	_ = InitRoutine(PrepareIdLenCalculation, node1)
+
+	node1.Listen()
+	node2.Listen()
+	node1.Broadcast(nil)
+
+	time.Sleep(1 * time.Millisecond)
+
+	msg := node1.Co.Decrypt(node1.Co.Cipher)
+	if msg.String() != "4" {
+		t.Fail()
+	}
 }

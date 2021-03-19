@@ -1,6 +1,7 @@
 package DCP
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 )
@@ -9,7 +10,7 @@ type ICtNode interface {
 	InitRoutine(Prepare) error
 	Broadcast()
 	Listen()
-	HandleCalculationObject(interface{})
+	HandleCalculationObject(interface{}) bool
 	Print()
 }
 
@@ -17,9 +18,8 @@ type CtNode struct {
 	Id             uuid.UUID
 	Co             *CalculationObjectPaillier
 	Ids            []string
-	ReachableNodes map[chan *CalculationObjectPaillier]struct{}
-	Channel        chan *CalculationObjectPaillier
 	HandledCoIds   map[uuid.UUID]struct{}
+	TransportLayer *ChannelTransport
 }
 
 func InitRoutine(fn Prepare, node *CtNode) error {
@@ -28,8 +28,6 @@ func InitRoutine(fn Prepare, node *CtNode) error {
 }
 
 func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
-	fmt.Printf("Broadcasting triggered in node %s\n", node.Id)
-
 	var objToBroadcast *CalculationObjectPaillier
 	if externalCo != nil {
 		objToBroadcast = externalCo
@@ -37,43 +35,44 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 		objToBroadcast = node.Co
 	}
 
-	for rn, _ := range node.ReachableNodes {
-		go func(rn chan *CalculationObjectPaillier) {
-			rn <- objToBroadcast
-		}(rn)
+	b, e := json.Marshal(objToBroadcast)
+	if e != nil {
+		return
 	}
+
+	node.TransportLayer.Broadcast(node.Id, &b)
 }
 
 func (node *CtNode) Listen() {
-	go func() {
-		for {
-			co := <-node.Channel
-			fmt.Printf("Listen triggered in node %s\n", node.Id)
-			node.HandleCalculationObject(co)
-		}
-	}()
+	go node.TransportLayer.Listen(node.Id, node.HandleCalculationObject)
 }
 
-func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
-	// Run Eval
-	// Broadcast
+func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
+	var co *CalculationObjectPaillier = &CalculationObjectPaillier{}
+	e := json.Unmarshal(*data, co)
+	if e != nil {
+		return false
+	}
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		fmt.Println("Public key match")
-		if co.Counter > nodeVisitDecryptThreshold {
+		if co.Counter >= nodeVisitDecryptThreshold {
 			fmt.Println("Calculation process finished, updating internal CalculationObject")
-			node.Co = co
-			close(node.Channel)
+			node.Co.Counter = co.Counter
+			node.Co.Cipher = co.Cipher
+			return true
 		}
 
-		fmt.Println("Too few participants to satisfy privacy. Still listening")
+		fmt.Printf("Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
 		// Too few participants to satisfy privacy, abort Calculation process
-		return
+		node.Broadcast(co)
+		return false
 	}
 
 	if _, exist := node.HandledCoIds[co.Id]; exist {
 		fmt.Printf("Calculation object with ID: %s already handled\n", co.Id.String())
-		return
+		node.Broadcast(co)
+		return false
 	}
 
 	idLen := len(node.Ids)
@@ -82,7 +81,7 @@ func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
 	if e != nil {
 		// No-op
 		fmt.Println(e.Error())
-		return
+		return false
 	}
 
 	// Add to co cipher
@@ -91,6 +90,8 @@ func (node *CtNode) HandleCalculationObject(co *CalculationObjectPaillier) {
 
 	node.HandledCoIds[co.Id] = struct{}{}
 	node.Broadcast(co)
+
+	return true
 }
 
 func (node CtNode) Print() {
