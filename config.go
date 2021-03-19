@@ -1,13 +1,13 @@
 package DCP
 
 type CtNodeConfig struct {
-	nodeVisitDecryptThreshold int
+	NodeVisitDecryptThreshold int
 }
 
 func (conf *CtNodeConfig) GetThreshold() int {
-	if conf.nodeVisitDecryptThreshold == 0 {
-		conf.nodeVisitDecryptThreshold = defaultNodeVisitDecryptThreshold
+	if conf.NodeVisitDecryptThreshold == 0 {
+		conf.NodeVisitDecryptThreshold = defaultNodeVisitDecryptThreshold
 	}
 
-	return conf.nodeVisitDecryptThreshold
+	return conf.NodeVisitDecryptThreshold
 }
