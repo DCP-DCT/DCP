@@ -57,11 +57,11 @@ func TestCalculationObjectPaillier_Encrypt(t *testing.T) {
 
 func TestCalculationObjectPaillier_Json(t *testing.T) {
 	co := &CalculationObjectPaillier{
-		Id:         uuid.UUID{},
-		Counter:    10,
-		privateKey: nil,
-		PublicKey:  nil,
-		Cipher:     nil,
+		TransactionId: uuid.UUID{},
+		Counter:       10,
+		privateKey:    nil,
+		PublicKey:     nil,
+		Cipher:        nil,
 	}
 
 	_ = co.KeyGen()

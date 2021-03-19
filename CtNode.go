@@ -41,7 +41,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 		return
 	}
 
-	fmt.Printf("Broadcasting object: Id: %s, Current count: %d\n", objToBroadcast.Id, objToBroadcast.Counter)
+	fmt.Printf("Broadcasting object: TransactionId: %s, Current count: %d\n", objToBroadcast.TransactionId, objToBroadcast.Counter)
 	node.TransportLayer.Broadcast(node.Id, &b)
 }
 
@@ -70,8 +70,9 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 		return false
 	}
 
-	if _, exist := node.HandledCoIds[co.Id]; exist {
-		fmt.Printf("Calculation object with ID: %s already handled\n", co.Id.String())
+	if _, exist := node.HandledCoIds[co.TransactionId]; exist {
+		fmt.Printf("Calculation object with ID: %s already handled\n", co.TransactionId.String())
+
 		node.Broadcast(co)
 		return false
 	}
@@ -89,7 +90,9 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 	co.Add(cipher)
 	co.Counter = co.Counter + 1
 
-	node.HandledCoIds[co.Id] = struct{}{}
+	node.HandledCoIds[co.TransactionId] = struct{}{}
+
+	co.TransactionId = uuid.New()
 	node.Broadcast(co)
 
 	return false

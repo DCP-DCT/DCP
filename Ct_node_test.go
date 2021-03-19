@@ -21,10 +21,10 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 	node1 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
-			Id:        uuid.New(),
-			Counter:   0,
-			PublicKey: nil,
-			Cipher:    nil,
+			TransactionId: uuid.New(),
+			Counter:       0,
+			PublicKey:     nil,
+			Cipher:        nil,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -33,16 +33,18 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
-		Config: &CtNodeConfig{},
+		Config: &CtNodeConfig{
+			NodeVisitDecryptThreshold: 2,
+		},
 	}
 
 	node2 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
-			Id:        uuid.New(),
-			Counter:   0,
-			PublicKey: nil,
-			Cipher:    nil,
+			TransactionId: uuid.New(),
+			Counter:       0,
+			PublicKey:     nil,
+			Cipher:        nil,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -51,7 +53,9 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
-		Config: &CtNodeConfig{},
+		Config: &CtNodeConfig{
+			NodeVisitDecryptThreshold: 2,
+		},
 	}
 
 	_ = node1.Co.KeyGen()
@@ -73,8 +77,8 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 	node1 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
-			Id:        uuid.New(),
-			Counter:   0,
+			TransactionId: uuid.New(),
+			Counter:       0,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -89,8 +93,8 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 	node2 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
-			Id:        uuid.New(),
-			Counter:   0,
+			TransactionId: uuid.New(),
+			Counter:       0,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -105,8 +109,8 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 	node3 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
-			Id:        uuid.New(),
-			Counter:   0,
+			TransactionId: uuid.New(),
+			Counter:       0,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -140,10 +144,10 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 	node1 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
-			Id:        uuid.New(),
-			Counter:   defaultNodeVisitDecryptThreshold - 1,
-			PublicKey: nil,
-			Cipher:    nil,
+			TransactionId: uuid.New(),
+			Counter:       defaultNodeVisitDecryptThreshold - 1,
+			PublicKey:     nil,
+			Cipher:        nil,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -158,10 +162,10 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 	node2 := &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
-			Id:        uuid.New(),
-			Counter:   0,
-			PublicKey: nil,
-			Cipher:    nil,
+			TransactionId: uuid.New(),
+			Counter:       0,
+			PublicKey:     nil,
+			Cipher:        nil,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
