@@ -92,7 +92,7 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 	node.HandledCoIds[co.Id] = struct{}{}
 	node.Broadcast(co)
 
-	return true
+	return false
 }
 
 func (node CtNode) Print() {

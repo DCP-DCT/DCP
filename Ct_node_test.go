@@ -75,8 +75,6 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 		Co: &CalculationObjectPaillier{
 			Id:        uuid.New(),
 			Counter:   0,
-			PublicKey: nil,
-			Cipher:    nil,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -93,8 +91,6 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 		Co: &CalculationObjectPaillier{
 			Id:        uuid.New(),
 			Counter:   0,
-			PublicKey: nil,
-			Cipher:    nil,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -111,8 +107,6 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 		Co: &CalculationObjectPaillier{
 			Id:        uuid.New(),
 			Counter:   0,
-			PublicKey: nil,
-			Cipher:    nil,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
