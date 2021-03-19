@@ -41,6 +41,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 		return
 	}
 
+	fmt.Printf("Broadcasting object: Id: %s, Current count: %d\n", objToBroadcast.Id, objToBroadcast.Counter)
 	node.TransportLayer.Broadcast(node.Id, &b)
 }
 
@@ -65,7 +66,6 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 		}
 
 		fmt.Printf("Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
-		// Too few participants to satisfy privacy, abort Calculation process
 		node.Broadcast(co)
 		return false
 	}
