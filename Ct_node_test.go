@@ -33,6 +33,7 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
+		Config: &CtNodeConfig{},
 	}
 
 	node2 := &CtNode{
@@ -50,6 +51,7 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
+		Config: &CtNodeConfig{},
 	}
 
 	_ = node1.Co.KeyGen()
@@ -83,6 +85,7 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
+		Config: &CtNodeConfig{},
 	}
 
 	node2 := &CtNode{
@@ -100,6 +103,7 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
+		Config: &CtNodeConfig{},
 	}
 
 	node3 := &CtNode{
@@ -117,6 +121,7 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
+		Config: &CtNodeConfig{},
 	}
 
 	_ = node1.Co.KeyGen()
@@ -142,7 +147,7 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
 			Id:        uuid.New(),
-			Counter:   nodeVisitDecryptThreshold - 1,
+			Counter:   defaultNodeVisitDecryptThreshold - 1,
 			PublicKey: nil,
 			Cipher:    nil,
 		},
@@ -153,6 +158,7 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
+		Config: &CtNodeConfig{},
 	}
 
 	node2 := &CtNode{
@@ -170,6 +176,7 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
+		Config: &CtNodeConfig{},
 	}
 
 	_ = node1.Co.KeyGen()

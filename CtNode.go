@@ -20,6 +20,7 @@ type CtNode struct {
 	Ids            []string
 	HandledCoIds   map[uuid.UUID]struct{}
 	TransportLayer *ChannelTransport
+	Config         *CtNodeConfig
 }
 
 func InitRoutine(fn Prepare, node *CtNode) error {
@@ -56,7 +57,7 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		fmt.Println("Public key match")
-		if co.Counter >= nodeVisitDecryptThreshold {
+		if co.Counter >= node.Config.GetThreshold() {
 			fmt.Println("Calculation process finished, updating internal CalculationObject")
 			node.Co.Counter = co.Counter
 			node.Co.Cipher = co.Cipher
@@ -75,8 +76,8 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 		return false
 	}
 
+	fmt.Printf("Running update in node %s\n", node.Id)
 	idLen := len(node.Ids)
-
 	cipher, e := co.Encrypt(idLen)
 	if e != nil {
 		// No-op

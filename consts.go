@@ -1,5 +1,5 @@
 package DCP
 
 const (
-	nodeVisitDecryptThreshold = 10
+	defaultNodeVisitDecryptThreshold = 10
 )

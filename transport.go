@@ -43,22 +43,15 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 }
 
 func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj *[]byte) {
+	fmt.Printf("Broadcast triggered in node %s\n", nodeId)
 	for rn, stop := range chT.ReachableNodes {
 		go func(rn chan *[]byte, stop chan struct{}) {
 			for {
 				select {
 				case <-stop:
-					fmt.Println("Stop channel triggered, aborting broadcast early")
-					return
-				default:
-				}
-
-				select {
-				case <-stop:
-					fmt.Println("Stop channel triggered, aborting broadcast early")
+					fmt.Printf("Stop channel triggered, aborting broadcast early, node: %s\n", nodeId)
 					return
 				case rn <- obj:
-					fmt.Printf("Broadcast triggered in node %s\n", nodeId)
 				}
 			}
 		}(rn, stop)
