@@ -2,6 +2,7 @@ package DCP
 
 type CtNodeConfig struct {
 	NodeVisitDecryptThreshold int
+	SuppressLogging bool
 }
 
 func (conf *CtNodeConfig) GetThreshold() int {

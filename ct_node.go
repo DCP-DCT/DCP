@@ -18,6 +18,7 @@ type CtNode struct {
 	Id             uuid.UUID
 	Co             *CalculationObjectPaillier
 	Ids            []string
+	coProcessRunning bool
 	HandledCoIds   map[uuid.UUID]struct{}
 	TransportLayer *ChannelTransport
 	Config         *CtNodeConfig
@@ -41,8 +42,11 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 		return
 	}
 
-	fmt.Printf("Broadcasting object: TransactionId: %s, Current count: %d\n", objToBroadcast.TransactionId, objToBroadcast.Counter)
-	node.TransportLayer.Broadcast(node.Id, &b)
+	logf(node.Config.SuppressLogging, "Broadcasting object: TransactionId: %s, Current count: %d\n", objToBroadcast.TransactionId, objToBroadcast.Counter)
+
+	node.TransportLayer.Broadcast(node.Id, &b, func() {
+		node.coProcessRunning = true
+	})
 }
 
 func (node *CtNode) Listen() {
@@ -57,27 +61,29 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 	}
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
-		fmt.Println("Public key match")
 		if co.Counter >= node.Config.GetThreshold() {
-			fmt.Println("Calculation process finished, updating internal CalculationObject")
+			logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
+
 			node.Co.Counter = co.Counter
 			node.Co.Cipher = co.Cipher
+			node.coProcessRunning = false
 			return true
 		}
 
-		fmt.Printf("Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
+		logf(node.Config.SuppressLogging,"Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
 		node.Broadcast(co)
 		return false
 	}
 
 	if _, exist := node.HandledCoIds[co.TransactionId]; exist {
-		fmt.Printf("Calculation object with ID: %s already handled\n", co.TransactionId.String())
+		logf(node.Config.SuppressLogging, "Calculation object with ID: %s already handled\n", co.TransactionId.String())
 
 		node.Broadcast(co)
 		return false
 	}
 
-	fmt.Printf("Running update in node %s\n", node.Id)
+	logf(node.Config.SuppressLogging, "Running update in node %s\n", node.Id)
+
 	idLen := len(node.Ids)
 	cipher, e := co.Encrypt(idLen)
 	if e != nil {
@@ -96,6 +102,10 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 	node.Broadcast(co)
 
 	return false
+}
+
+func (node *CtNode) IsCalculationProcessRunning() bool {
+	return node.coProcessRunning
 }
 
 func (node CtNode) Print() {

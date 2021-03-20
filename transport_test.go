@@ -27,7 +27,9 @@ func TestChannelTransport_Broadcast(t *testing.T) {
 	}
 
 	b, _ := json.Marshal(packet)
-	chT.Broadcast(uuid.New(), &b)
+	chT.Broadcast(uuid.New(), &b, func() {
+		return
+	})
 
 	received := <-node1Chan
 
@@ -93,7 +95,9 @@ func TestChannelTransport_ListenerAndBroadcast(t *testing.T) {
 
 	b, _ := json.Marshal(packet)
 
-	broadcaster.Broadcast(uuid.New(), &b)
+	broadcaster.Broadcast(uuid.New(), &b, func() {
+		return
+	})
 
 	time.Sleep(1 * time.Millisecond)
 }
