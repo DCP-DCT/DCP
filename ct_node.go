@@ -15,13 +15,13 @@ type ICtNode interface {
 }
 
 type CtNode struct {
-	Id             uuid.UUID
-	Co             *CalculationObjectPaillier
-	Ids            []string
+	Id               uuid.UUID
+	Co               *CalculationObjectPaillier
+	Ids              []string
 	coProcessRunning bool
-	HandledCoIds   map[uuid.UUID]struct{}
-	TransportLayer *ChannelTransport
-	Config         *CtNodeConfig
+	HandledCoIds     map[uuid.UUID]struct{}
+	TransportLayer   *ChannelTransport
+	Config           *CtNodeConfig
 }
 
 func InitRoutine(fn Prepare, node *CtNode) error {
@@ -70,7 +70,7 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 			return true
 		}
 
-		logf(node.Config.SuppressLogging,"Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
+		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
 		node.Broadcast(co)
 		return false
 	}

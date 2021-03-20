@@ -2,7 +2,7 @@ package DCP
 
 import "fmt"
 
-func logLn( loggerDisabled bool, a ...interface{}) {
+func logLn(loggerDisabled bool, a ...interface{}) {
 	if !loggerDisabled {
 		fmt.Println(a...)
 	}
