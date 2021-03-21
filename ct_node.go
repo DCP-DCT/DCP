@@ -34,7 +34,7 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 	}
 
 	return &CtNode{
-		Id: uuid.UUID{},
+		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
 			TransactionId: uuid.New(),
 			Counter:       0,
