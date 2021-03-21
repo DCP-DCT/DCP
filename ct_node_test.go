@@ -29,9 +29,9 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
 		TransportLayer: &ChannelTransport{
-			DataCh:         make(chan *[]byte),
+			DataCh:         make(chan []byte),
 			StopCh:         make(chan struct{}),
-			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+			ReachableNodes: make(map[chan []byte]chan struct{}),
 		},
 		Config: &CtNodeConfig{
 			NodeVisitDecryptThreshold: 2,
@@ -50,9 +50,9 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
 		TransportLayer: &ChannelTransport{
-			DataCh:         make(chan *[]byte),
+			DataCh:         make(chan []byte),
 			StopCh:         make(chan struct{}),
-			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+			ReachableNodes: make(map[chan []byte]chan struct{}),
 		},
 		Config: &CtNodeConfig{
 			NodeVisitDecryptThreshold: 2,
@@ -85,9 +85,9 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
 		TransportLayer: &ChannelTransport{
-			DataCh:         make(chan *[]byte),
+			DataCh:         make(chan []byte),
 			StopCh:         make(chan struct{}),
-			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+			ReachableNodes: make(map[chan []byte]chan struct{}),
 		},
 		Config:    &CtNodeConfig{},
 		Diagnosis: NewDiagnosis(),
@@ -102,9 +102,9 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
 		TransportLayer: &ChannelTransport{
-			DataCh:         make(chan *[]byte),
+			DataCh:         make(chan []byte),
 			StopCh:         make(chan struct{}),
-			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+			ReachableNodes: make(map[chan []byte]chan struct{}),
 		},
 		Config:    &CtNodeConfig{},
 		Diagnosis: NewDiagnosis(),
@@ -119,9 +119,9 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
 		TransportLayer: &ChannelTransport{
-			DataCh:         make(chan *[]byte),
+			DataCh:         make(chan []byte),
 			StopCh:         make(chan struct{}),
-			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+			ReachableNodes: make(map[chan []byte]chan struct{}),
 		},
 		Config:    &CtNodeConfig{},
 		Diagnosis: NewDiagnosis(),
@@ -157,9 +157,9 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
 		TransportLayer: &ChannelTransport{
-			DataCh:         make(chan *[]byte),
+			DataCh:         make(chan []byte),
 			StopCh:         make(chan struct{}),
-			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+			ReachableNodes: make(map[chan []byte]chan struct{}),
 		},
 		Config:    &CtNodeConfig{},
 		Diagnosis: NewDiagnosis(),
@@ -176,9 +176,9 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
 		TransportLayer: &ChannelTransport{
-			DataCh:         make(chan *[]byte),
+			DataCh:         make(chan []byte),
 			StopCh:         make(chan struct{}),
-			ReachableNodes: make(map[chan *[]byte]chan struct{}),
+			ReachableNodes: make(map[chan []byte]chan struct{}),
 		},
 		Config:    &CtNodeConfig{},
 		Diagnosis: NewDiagnosis(),
@@ -196,7 +196,7 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 	node2.Listen()
 	node1.Broadcast(nil)
 
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 
 	msg := node1.Co.Decrypt(node1.Co.Cipher)
 	if msg.String() != "4" {

@@ -27,9 +27,9 @@ type CtNode struct {
 
 func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 	t := &ChannelTransport{
-		DataCh:          make(chan *[]byte),
+		DataCh:          make(chan []byte),
 		StopCh:          make(chan struct{}),
-		ReachableNodes:  make(map[chan *[]byte]chan struct{}),
+		ReachableNodes:  make(map[chan []byte]chan struct{}),
 		SuppressLogging: config.SuppressLogging,
 	}
 
@@ -69,7 +69,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	logf(node.Config.SuppressLogging, "Broadcasting object: TransactionId: %s, Current count: %d\n", objToBroadcast.TransactionId, objToBroadcast.Counter)
 	node.Diagnosis.IncrementNumberOfBroadcasts()
 
-	node.TransportLayer.Broadcast(node.Id, &b, func() {
+	node.TransportLayer.Broadcast(node.Id, b, func() {
 		if externalCo != nil && !node.coProcessRunning {
 			node.coProcessRunning = true
 		}
@@ -80,9 +80,9 @@ func (node *CtNode) Listen() {
 	go node.TransportLayer.Listen(node.Id, node.HandleCalculationObject)
 }
 
-func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
+func (node *CtNode) HandleCalculationObject(data []byte) bool {
 	var co = &CalculationObjectPaillier{}
-	e := json.Unmarshal(*data, co)
+	e := json.Unmarshal(data, co)
 	if e != nil {
 		return false
 	}

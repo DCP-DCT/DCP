@@ -5,18 +5,18 @@ import (
 	"sync"
 )
 
-type Handler func(*[]byte) bool
+type Handler func([]byte) bool
 type OnTrigger func()
 
 type Transport interface {
 	Listen(nodeId uuid.UUID, handler Handler)
-	Broadcast(nodeId uuid.UUID, obj *[]byte, onTrigger OnTrigger)
+	Broadcast(nodeId uuid.UUID, obj []byte, onTrigger OnTrigger)
 }
 
 type ChannelTransport struct {
-	DataCh          chan *[]byte
+	DataCh          chan []byte
 	StopCh          chan struct{}
-	ReachableNodes  map[chan *[]byte]chan struct{}
+	ReachableNodes  map[chan []byte]chan struct{}
 	SuppressLogging bool
 }
 
@@ -43,12 +43,12 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 	wg.Wait()
 }
 
-func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj *[]byte, onTrigger OnTrigger) {
+func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj []byte, onTrigger OnTrigger) {
 	logf(chT.SuppressLogging, "Broadcast triggered in node %s\n", nodeId)
 	onTrigger()
 
 	for rn, stop := range chT.ReachableNodes {
-		go func(rn chan *[]byte, stop chan struct{}) {
+		go func(rn chan []byte, stop chan struct{}) {
 			for {
 				select {
 				case <-stop:
