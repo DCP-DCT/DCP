@@ -36,6 +36,7 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 		Config: &CtNodeConfig{
 			NodeVisitDecryptThreshold: 2,
 		},
+		Diagnosis: NewDiagnosis(),
 	}
 
 	node2 := &CtNode{
@@ -56,6 +57,7 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 		Config: &CtNodeConfig{
 			NodeVisitDecryptThreshold: 2,
 		},
+		Diagnosis: NewDiagnosis(),
 	}
 
 	_ = node1.Co.KeyGen()
@@ -87,7 +89,8 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
-		Config: &CtNodeConfig{},
+		Config:    &CtNodeConfig{},
+		Diagnosis: NewDiagnosis(),
 	}
 
 	node2 := &CtNode{
@@ -103,7 +106,8 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
-		Config: &CtNodeConfig{},
+		Config:    &CtNodeConfig{},
+		Diagnosis: NewDiagnosis(),
 	}
 
 	node3 := &CtNode{
@@ -119,7 +123,8 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
-		Config: &CtNodeConfig{},
+		Config:    &CtNodeConfig{},
+		Diagnosis: NewDiagnosis(),
 	}
 
 	_ = node1.Co.KeyGen()
@@ -156,7 +161,8 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
-		Config: &CtNodeConfig{},
+		Config:    &CtNodeConfig{},
+		Diagnosis: NewDiagnosis(),
 	}
 
 	node2 := &CtNode{
@@ -174,7 +180,8 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 			StopCh:         make(chan struct{}),
 			ReachableNodes: make(map[chan *[]byte]chan struct{}),
 		},
-		Config: &CtNodeConfig{},
+		Config:    &CtNodeConfig{},
+		Diagnosis: NewDiagnosis(),
 	}
 
 	_ = node1.Co.KeyGen()

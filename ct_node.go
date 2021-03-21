@@ -22,6 +22,30 @@ type CtNode struct {
 	HandledCoIds     map[uuid.UUID]struct{}
 	TransportLayer   *ChannelTransport
 	Config           *CtNodeConfig
+	Diagnosis        *Diagnosis
+}
+
+func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
+	t := &ChannelTransport{
+		DataCh:          make(chan *[]byte),
+		StopCh:          make(chan struct{}),
+		ReachableNodes:  make(map[chan *[]byte]chan struct{}),
+		SuppressLogging: config.SuppressLogging,
+	}
+
+	return &CtNode{
+		Id: uuid.UUID{},
+		Co: &CalculationObjectPaillier{
+			TransactionId: uuid.New(),
+			Counter:       0,
+		},
+		Ids:              ids,
+		coProcessRunning: false,
+		HandledCoIds:     make(map[uuid.UUID]struct{}),
+		TransportLayer:   t,
+		Config:           config,
+		Diagnosis:        NewDiagnosis(),
+	}
 }
 
 func InitRoutine(fn Prepare, node *CtNode) error {
@@ -43,6 +67,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	}
 
 	logf(node.Config.SuppressLogging, "Broadcasting object: TransactionId: %s, Current count: %d\n", objToBroadcast.TransactionId, objToBroadcast.Counter)
+	node.Diagnosis.IncrementNumberOfBroadcasts()
 
 	node.TransportLayer.Broadcast(node.Id, &b, func() {
 		node.coProcessRunning = true
@@ -71,18 +96,22 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 		}
 
 		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
+		node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
+
 		node.Broadcast(co)
 		return false
 	}
 
 	if _, exist := node.HandledCoIds[co.TransactionId]; exist {
 		logf(node.Config.SuppressLogging, "Calculation object with ID: %s already handled\n", co.TransactionId.String())
+		node.Diagnosis.IncrementNumberOfDuplicates()
 
 		node.Broadcast(co)
 		return false
 	}
 
 	logf(node.Config.SuppressLogging, "Running update in node %s\n", node.Id)
+	node.Diagnosis.IncrementNumberOfUpdates()
 
 	idLen := len(node.Ids)
 	cipher, e := co.Encrypt(idLen)
