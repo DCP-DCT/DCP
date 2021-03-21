@@ -11,7 +11,7 @@ func PrepareIdLenCalculation(node *CtNode) error {
 	}
 
 	node.Co.Cipher = c
-	node.Co.Counter = node.Co.Counter + 1
+	node.Co.Counter++
 
 	return nil
 }

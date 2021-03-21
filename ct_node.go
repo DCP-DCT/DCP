@@ -70,7 +70,9 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	node.Diagnosis.IncrementNumberOfBroadcasts()
 
 	node.TransportLayer.Broadcast(node.Id, &b, func() {
-		node.coProcessRunning = true
+		if externalCo != nil && !node.coProcessRunning {
+			node.coProcessRunning = true
+		}
 	})
 }
 
@@ -82,6 +84,14 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 	var co = &CalculationObjectPaillier{}
 	e := json.Unmarshal(*data, co)
 	if e != nil {
+		return false
+	}
+
+	if _, exist := node.HandledCoIds[co.TransactionId]; exist {
+		logf(node.Config.SuppressLogging, "Calculation object with ID: %s already handled\n", co.TransactionId.String())
+		node.Diagnosis.IncrementNumberOfDuplicates()
+
+		node.Broadcast(co)
 		return false
 	}
 
@@ -97,14 +107,7 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 
 		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
 		node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
-
-		node.Broadcast(co)
-		return false
-	}
-
-	if _, exist := node.HandledCoIds[co.TransactionId]; exist {
-		logf(node.Config.SuppressLogging, "Calculation object with ID: %s already handled\n", co.TransactionId.String())
-		node.Diagnosis.IncrementNumberOfDuplicates()
+		node.HandledCoIds[co.TransactionId] = struct{}{}
 
 		node.Broadcast(co)
 		return false
@@ -116,7 +119,6 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 	idLen := len(node.Ids)
 	cipher, e := co.Encrypt(idLen)
 	if e != nil {
-		// No-op
 		fmt.Println(e.Error())
 		return false
 	}
