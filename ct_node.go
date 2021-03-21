@@ -79,7 +79,7 @@ func (node *CtNode) Listen() {
 }
 
 func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
-	var co *CalculationObjectPaillier = &CalculationObjectPaillier{}
+	var co = &CalculationObjectPaillier{}
 	e := json.Unmarshal(*data, co)
 	if e != nil {
 		return false
@@ -125,11 +125,12 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 	co.Add(cipher)
 	co.Counter = co.Counter + 1
 
-	node.HandledCoIds[co.TransactionId] = struct{}{}
-
+	oldTransactionId := co.TransactionId
 	co.TransactionId = uuid.New()
-	node.Broadcast(co)
+	node.HandledCoIds[co.TransactionId] = struct{}{}
+	node.HandledCoIds[oldTransactionId] = struct{}{}
 
+	node.Broadcast(co)
 	return false
 }
 
