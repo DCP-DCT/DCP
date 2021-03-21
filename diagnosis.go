@@ -6,6 +6,7 @@ type Diagnosis struct {
 	NumberOfRejectedDueToThreshold int
 	NumberOfDuplicates             int
 	NumberOfPkMatches              int
+	NumberOfInternalUpdates int
 }
 
 func NewDiagnosis() *Diagnosis {
@@ -15,6 +16,7 @@ func NewDiagnosis() *Diagnosis {
 		NumberOfRejectedDueToThreshold: 0,
 		NumberOfDuplicates:             0,
 		NumberOfPkMatches:              0,
+		NumberOfInternalUpdates: 0,
 	}
 }
 
@@ -43,4 +45,8 @@ func (d *Diagnosis) IncrementNumberOfDuplicates() {
 
 func (d *Diagnosis) IncrementNumberOfPkMatches() {
 	d.NumberOfPkMatches++
+}
+
+func (d *Diagnosis) IncrementNumberOfInternalUpdates() {
+	d.NumberOfInternalUpdates++
 }

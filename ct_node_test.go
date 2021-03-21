@@ -151,8 +151,6 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 		Co: &CalculationObjectPaillier{
 			TransactionId: uuid.New(),
 			Counter:       defaultNodeVisitDecryptThreshold - 1,
-			PublicKey:     nil,
-			Cipher:        nil,
 		},
 		Ids:          []string{uuid.New().String(), uuid.New().String()},
 		HandledCoIds: make(map[uuid.UUID]struct{}),
@@ -165,24 +163,7 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 		Diagnosis: NewDiagnosis(),
 	}
 
-	node2 := &CtNode{
-		Id: uuid.New(),
-		Co: &CalculationObjectPaillier{
-			TransactionId: uuid.New(),
-			Counter:       0,
-			PublicKey:     nil,
-			Cipher:        nil,
-		},
-		Ids:          []string{uuid.New().String(), uuid.New().String()},
-		HandledCoIds: make(map[uuid.UUID]struct{}),
-		TransportLayer: &ChannelTransport{
-			DataCh:         make(chan []byte),
-			StopCh:         make(chan struct{}),
-			ReachableNodes: make(map[chan []byte]chan struct{}),
-		},
-		Config:    &CtNodeConfig{},
-		Diagnosis: NewDiagnosis(),
-	}
+	node2 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, &CtNodeConfig{})
 
 	_ = node1.Co.KeyGen()
 	_ = node2.Co.KeyGen()
@@ -196,7 +177,7 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 	node2.Listen()
 	node1.Broadcast(nil)
 
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(1 * time.Millisecond)
 
 	msg := node1.Co.Decrypt(node1.Co.Cipher)
 	if msg.String() != "4" {

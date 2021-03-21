@@ -70,7 +70,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	node.Diagnosis.IncrementNumberOfBroadcasts()
 
 	node.TransportLayer.Broadcast(node.Id, b, func() {
-		if externalCo != nil && !node.coProcessRunning {
+		if externalCo == nil && !node.coProcessRunning {
 			node.coProcessRunning = true
 		}
 	})
@@ -98,13 +98,20 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		node.Diagnosis.IncrementNumberOfPkMatches()
 
+		if !node.coProcessRunning {
+			logLn(node.Config.SuppressLogging, "Process already finished")
+			return false
+		}
+
 		if co.Counter >= node.Config.GetThreshold() {
 			logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
+			node.Diagnosis.IncrementNumberOfInternalUpdates()
 
 			node.Co.Counter = co.Counter
 			node.Co.Cipher = co.Cipher
 			node.coProcessRunning = false
-			return true
+
+			return false
 		}
 
 		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
