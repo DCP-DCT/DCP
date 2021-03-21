@@ -96,6 +96,8 @@ func (node *CtNode) HandleCalculationObject(data *[]byte) bool {
 	}
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
+		node.Diagnosis.IncrementNumberOfPkMatches()
+
 		if co.Counter >= node.Config.GetThreshold() {
 			logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
 
