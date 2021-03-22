@@ -3,6 +3,7 @@ package DCP
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/didiercrunch/paillier"
 	"github.com/google/uuid"
 )
 
@@ -15,14 +16,15 @@ type ICtNode interface {
 }
 
 type CtNode struct {
-	Id               uuid.UUID
-	Co               *CalculationObjectPaillier
-	Ids              []string
-	coProcessRunning bool
-	HandledCoIds     map[uuid.UUID]struct{}
-	TransportLayer   *ChannelTransport
-	Config           *CtNodeConfig
-	Diagnosis        *Diagnosis
+	Id                         uuid.UUID
+	Co                         *CalculationObjectPaillier
+	Ids                        []string
+	coProcessRunning           bool
+	previousConcludedProcesses map[*paillier.PublicKey]struct{}
+	HandledBranchIds           map[uuid.UUID]struct{}
+	TransportLayer             *ChannelTransport
+	Config                     *CtNodeConfig
+	Diagnosis                  *Diagnosis
 }
 
 func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
@@ -36,15 +38,17 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 	return &CtNode{
 		Id: uuid.New(),
 		Co: &CalculationObjectPaillier{
-			TransactionId: uuid.New(),
-			Counter:       0,
+			Id:       uuid.New(),
+			BranchId: nil,
+			Counter:  0,
 		},
-		Ids:              ids,
-		coProcessRunning: false,
-		HandledCoIds:     make(map[uuid.UUID]struct{}),
-		TransportLayer:   t,
-		Config:           config,
-		Diagnosis:        NewDiagnosis(),
+		Ids:                        ids,
+		coProcessRunning:           false,
+		previousConcludedProcesses: make(map[*paillier.PublicKey]struct{}),
+		HandledBranchIds:           make(map[uuid.UUID]struct{}),
+		TransportLayer:             t,
+		Config:                     config,
+		Diagnosis:                  NewDiagnosis(),
 	}
 }
 
@@ -66,7 +70,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 		return
 	}
 
-	logf(node.Config.SuppressLogging, "Broadcasting object: TransactionId: %s, Current count: %d\n", objToBroadcast.TransactionId, objToBroadcast.Counter)
+	logf(node.Config.SuppressLogging, "Broadcasting Node: %s BranchId: %s, Current count: %d\n", node.Id.String(), objToBroadcast.BranchId, objToBroadcast.Counter)
 	node.Diagnosis.IncrementNumberOfBroadcasts()
 
 	node.TransportLayer.Broadcast(node.Id, b, func() {
@@ -87,21 +91,23 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 		return false
 	}
 
-	if _, exist := node.HandledCoIds[co.TransactionId]; exist {
-		logf(node.Config.SuppressLogging, "Calculation object with ID: %s already handled\n", co.TransactionId.String())
+	if co.BranchId == nil {
+		// First handle, set branch
+		newBranchId := uuid.New()
+		co.BranchId = &newBranchId
+	} else if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
+		logf(node.Config.SuppressLogging, "BranchId: %s already handled\n", co.BranchId.String())
 		node.Diagnosis.IncrementNumberOfDuplicates()
 
-		node.Broadcast(co)
+		if node.Co.Id != co.Id {
+			node.Broadcast(co)
+		}
+
 		return false
 	}
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		node.Diagnosis.IncrementNumberOfPkMatches()
-
-		if !node.coProcessRunning {
-			logLn(node.Config.SuppressLogging, "Process already finished")
-			return false
-		}
 
 		if co.Counter >= node.Config.GetThreshold() {
 			logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
@@ -110,13 +116,14 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 			node.Co.Counter = co.Counter
 			node.Co.Cipher = co.Cipher
 			node.coProcessRunning = false
+			node.previousConcludedProcesses[node.Co.PublicKey] = struct{}{}
+			node.HandledBranchIds[*co.BranchId] = struct{}{}
 
-			return false
+			return true
 		}
 
 		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
 		node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
-		node.HandledCoIds[co.TransactionId] = struct{}{}
 
 		node.Broadcast(co)
 		return false
@@ -136,10 +143,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 	co.Add(cipher)
 	co.Counter = co.Counter + 1
 
-	oldTransactionId := co.TransactionId
-	co.TransactionId = uuid.New()
-	node.HandledCoIds[co.TransactionId] = struct{}{}
-	node.HandledCoIds[oldTransactionId] = struct{}{}
+	node.HandledBranchIds[*co.BranchId] = struct{}{}
 
 	node.Broadcast(co)
 	return false

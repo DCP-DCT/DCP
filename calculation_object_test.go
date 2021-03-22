@@ -13,10 +13,10 @@ func TestCalculationObjectPaillier_KeyGen(t *testing.T) {
 
 	for _, node := range nodes {
 		node = CtNode{
-			Id:           uuid.New(),
-			Co:           &CalculationObjectPaillier{},
-			Ids:          nil,
-			HandledCoIds: nil,
+			Id:               uuid.New(),
+			Co:               &CalculationObjectPaillier{},
+			Ids:              nil,
+			HandledBranchIds: nil,
 		}
 
 		e := node.Co.KeyGen()
@@ -30,10 +30,10 @@ func TestCalculationObjectPaillier_KeyGen(t *testing.T) {
 
 func TestCalculationObjectPaillier_Encrypt(t *testing.T) {
 	node := CtNode{
-		Id:           uuid.New(),
-		Co:           &CalculationObjectPaillier{},
-		Ids:          nil,
-		HandledCoIds: nil,
+		Id:               uuid.New(),
+		Co:               &CalculationObjectPaillier{},
+		Ids:              nil,
+		HandledBranchIds: nil,
 	}
 
 	e := node.Co.KeyGen()
@@ -57,11 +57,11 @@ func TestCalculationObjectPaillier_Encrypt(t *testing.T) {
 
 func TestCalculationObjectPaillier_Json(t *testing.T) {
 	co := &CalculationObjectPaillier{
-		TransactionId: uuid.UUID{},
-		Counter:       10,
-		privateKey:    nil,
-		PublicKey:     nil,
-		Cipher:        nil,
+		Id:         uuid.UUID{},
+		Counter:    10,
+		privateKey: nil,
+		PublicKey:  nil,
+		Cipher:     nil,
 	}
 
 	_ = co.KeyGen()

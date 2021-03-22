@@ -6,6 +6,7 @@ import (
 )
 
 type Handler func([]byte) bool
+
 type OnTrigger func()
 
 type Transport interface {
@@ -30,12 +31,12 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 		for obj := range chT.DataCh {
 			logf(chT.SuppressLogging, "Listen triggered in node %s\n", nodeId)
 			if obj != nil {
-				finished := handler(obj)
+				_ = handler(obj)
 
-				if finished {
+				/*if finished {
 					close(chT.StopCh)
 					return
-				}
+				}*/
 			}
 		}
 	}()
@@ -44,18 +45,15 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 }
 
 func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj []byte, onTrigger OnTrigger) {
-	logf(chT.SuppressLogging, "Broadcast triggered in node %s\n", nodeId)
 	onTrigger()
 
 	for rn, stop := range chT.ReachableNodes {
 		go func(rn chan []byte, stop chan struct{}) {
-			for {
-				select {
-				case <-stop:
-					logf(chT.SuppressLogging, "Stop channel triggered, aborting broadcast early, node: %s\n", nodeId)
-					return
-				case rn <- obj:
-				}
+			select {
+			case <-stop:
+				logf(chT.SuppressLogging, "Stop channel triggered, aborting broadcast early, node: %s\n", nodeId)
+				return
+			case rn <- obj:
 			}
 		}(rn, stop)
 	}
