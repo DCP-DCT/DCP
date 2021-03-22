@@ -33,6 +33,7 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 		StopCh:          make(chan struct{}),
 		ReachableNodes:  make(map[chan []byte]chan struct{}),
 		SuppressLogging: config.SuppressLogging,
+		Throttle:        config.Throttle,
 	}
 
 	return &CtNode{
