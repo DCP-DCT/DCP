@@ -128,7 +128,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 			node.previousConcludedProcesses[node.Co.PublicKey] = struct{}{}
 			node.HandledBranchIds[*co.BranchId] = struct{}{}
 
-			return true
+			return false
 		}
 
 		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
