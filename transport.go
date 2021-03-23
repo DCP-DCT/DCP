@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type Handler func([]byte) bool
+type Handler func([]byte)
 
 type OnTrigger func()
 
@@ -37,12 +37,7 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 					time.Sleep(*chT.Throttle)
 				}
 
-				_ = handler(obj)
-
-				/*if finished {
-					close(chT.StopCh)
-					return
-				}*/
+				handler(obj)
 			}
 		}
 	}()
@@ -53,15 +48,12 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj []byte, onTrigger OnTrigger) {
 	onTrigger()
 
-	for rn, stop := range chT.ReachableNodes {
-		go func(rn chan []byte, stop chan struct{}) {
+	for rn := range chT.ReachableNodes {
+		go func(rn chan []byte) {
 			select {
-			case <-stop:
-				logf(chT.SuppressLogging, "Stop channel triggered, aborting broadcast early, node: %s\n", nodeId)
-				return
 			case rn <- obj:
 			default:
 			}
-		}(rn, stop)
+		}(rn)
 	}
 }

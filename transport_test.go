@@ -48,16 +48,15 @@ func TestChannelTransport_Listener(t *testing.T) {
 		ReachableNodes: make(map[chan []byte]chan struct{}),
 	}
 
-	go chT.Listen(uuid.New(), func(i []byte) bool {
+	go chT.Listen(uuid.New(), func(i []byte) {
 		var packetReceived Packet
 		_ = json.Unmarshal(i, &packetReceived)
 
 		if packetReceived.Msg != "foobar" {
 			t.Fail()
-			return false
-		} else {
-			return true
 		}
+
+		return
 	})
 
 	packet := &Packet{
@@ -85,8 +84,8 @@ func TestChannelTransport_ListenerAndBroadcast(t *testing.T) {
 	broadcaster.ReachableNodes[listener.DataCh] = listener.StopCh
 	listener.ReachableNodes[broadcaster.DataCh] = broadcaster.StopCh
 
-	go listener.Listen(uuid.New(), func(i []byte) bool {
-		return true
+	go listener.Listen(uuid.New(), func(i []byte) {
+		return
 	})
 
 	packet := &Packet{

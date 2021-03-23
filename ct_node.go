@@ -86,18 +86,18 @@ func (node *CtNode) Listen() {
 	go node.TransportLayer.Listen(node.Id, node.HandleCalculationObject)
 }
 
-func (node *CtNode) HandleCalculationObject(data []byte) bool {
+func (node *CtNode) HandleCalculationObject(data []byte) {
 	var co = &CalculationObjectPaillier{}
 	e := json.Unmarshal(data, co)
 	if e != nil {
-		return false
+		return
 	}
 
 	co.Ttl = co.Ttl - 1
 	if co.Ttl <= 0 {
 		logf(node.Config.SuppressLogging, "CalculationObject: %s dropped due to expired ttl\n", co.Id.String())
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
-		return false
+		return
 	}
 
 	if co.BranchId == nil {
@@ -112,7 +112,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 			node.Broadcast(co)
 		}
 
-		return false
+		return
 	}
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
@@ -128,14 +128,14 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 			node.previousConcludedProcesses[node.Co.PublicKey] = struct{}{}
 			node.HandledBranchIds[*co.BranchId] = struct{}{}
 
-			return false
+			return
 		}
 
 		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
 		node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
 		node.Broadcast(co)
-		return false
+		return
 	}
 
 	logf(node.Config.SuppressLogging, "Running update in node %s\n", node.Id)
@@ -145,7 +145,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 	cipher, e := co.Encrypt(idLen)
 	if e != nil {
 		fmt.Println(e.Error())
-		return false
+		return
 	}
 
 	// Add to co cipher
@@ -155,7 +155,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 	node.HandledBranchIds[*co.BranchId] = struct{}{}
 
 	node.Broadcast(co)
-	return false
+	return
 }
 
 func (node *CtNode) IsCalculationProcessRunning() bool {
