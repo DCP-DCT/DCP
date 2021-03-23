@@ -6,12 +6,14 @@ type CtNodeConfig struct {
 	NodeVisitDecryptThreshold int
 	SuppressLogging           bool
 	Throttle                  *time.Duration
+	CoTTL                     int
 }
 
-func (conf *CtNodeConfig) GetThreshold() int {
-	if conf.NodeVisitDecryptThreshold == 0 {
-		conf.NodeVisitDecryptThreshold = defaultNodeVisitDecryptThreshold
+func NewCtNodeConfig() *CtNodeConfig {
+	return &CtNodeConfig{
+		NodeVisitDecryptThreshold: defaultNodeVisitDecryptThreshold,
+		SuppressLogging:           false,
+		Throttle:                  nil,
+		CoTTL:                     defaultCalculationObjectTTL,
 	}
-
-	return conf.NodeVisitDecryptThreshold
 }

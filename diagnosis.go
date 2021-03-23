@@ -7,6 +7,7 @@ type Diagnosis struct {
 	NumberOfDuplicates             int
 	NumberOfPkMatches              int
 	NumberOfInternalUpdates        int
+	NumberOfPacketsDropped         int
 }
 
 func NewDiagnosis() *Diagnosis {
@@ -17,6 +18,7 @@ func NewDiagnosis() *Diagnosis {
 		NumberOfDuplicates:             0,
 		NumberOfPkMatches:              0,
 		NumberOfInternalUpdates:        0,
+		NumberOfPacketsDropped:         0,
 	}
 }
 
@@ -49,4 +51,8 @@ func (d *Diagnosis) IncrementNumberOfPkMatches() {
 
 func (d *Diagnosis) IncrementNumberOfInternalUpdates() {
 	d.NumberOfInternalUpdates++
+}
+
+func (d *Diagnosis) IncrementNumberOfPacketsDropped() {
+	d.NumberOfPacketsDropped++
 }

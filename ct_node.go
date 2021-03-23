@@ -42,6 +42,7 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 			Id:       uuid.New(),
 			BranchId: nil,
 			Counter:  0,
+			Ttl:      config.CoTTL,
 		},
 		Ids:                        ids,
 		coProcessRunning:           false,
@@ -92,6 +93,13 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 		return false
 	}
 
+	co.Ttl = co.Ttl - 1
+	if co.Ttl <= 0 {
+		logf(node.Config.SuppressLogging, "CalculationObject: %s dropped due to expired ttl\n", co.Id.String())
+		node.Diagnosis.IncrementNumberOfPacketsDropped()
+		return false
+	}
+
 	if co.BranchId == nil {
 		// First handle, set branch
 		newBranchId := uuid.New()
@@ -110,7 +118,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) bool {
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		node.Diagnosis.IncrementNumberOfPkMatches()
 
-		if co.Counter >= node.Config.GetThreshold() {
+		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
 			logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
 			node.Diagnosis.IncrementNumberOfInternalUpdates()
 
