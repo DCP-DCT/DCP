@@ -60,6 +60,7 @@ func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj []byte, onTrigger O
 				logf(chT.SuppressLogging, "Stop channel triggered, aborting broadcast early, node: %s\n", nodeId)
 				return
 			case rn <- obj:
+			default:
 			}
 		}(rn, stop)
 	}
