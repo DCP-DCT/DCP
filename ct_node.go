@@ -152,6 +152,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 	co.Add(cipher)
 	co.Counter = co.Counter + 1
 
+	node.Diagnosis.Control.RegisterContribution(co.Id, *co.BranchId, len(node.Ids))
 	node.HandledBranchIds[*co.BranchId] = struct{}{}
 
 	node.Broadcast(co)

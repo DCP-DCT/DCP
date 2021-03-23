@@ -1,5 +1,25 @@
 package DCP
 
+import "github.com/google/uuid"
+
+type ControlEntity struct {
+	Id       uuid.UUID
+	BranchId uuid.UUID
+}
+
+type CalculationProcessControlEntity struct {
+	NodesContributedToUpdates map[ControlEntity]int
+}
+
+func (dpce *CalculationProcessControlEntity) RegisterContribution(id uuid.UUID, branchId uuid.UUID, added int) {
+	ce := ControlEntity{
+		Id:       id,
+		BranchId: branchId,
+	}
+
+	dpce.NodesContributedToUpdates[ce] = added
+}
+
 type Diagnosis struct {
 	NumberOfBroadcasts             int
 	NumberOfUpdates                int
@@ -8,6 +28,7 @@ type Diagnosis struct {
 	NumberOfPkMatches              int
 	NumberOfInternalUpdates        int
 	NumberOfPacketsDropped         int
+	Control                        *CalculationProcessControlEntity
 }
 
 func NewDiagnosis() *Diagnosis {
@@ -19,6 +40,9 @@ func NewDiagnosis() *Diagnosis {
 		NumberOfPkMatches:              0,
 		NumberOfInternalUpdates:        0,
 		NumberOfPacketsDropped:         0,
+		Control: &CalculationProcessControlEntity{
+			NodesContributedToUpdates: make(map[ControlEntity]int),
+		},
 	}
 }
 
