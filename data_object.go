@@ -11,5 +11,5 @@ type DataObject struct {
 	LatestPk           *paillier.PublicKey
 	LatestBranchId     *uuid.UUID
 	DiscardedBranchIds []uuid.UUID
-	Iteration int
+	Iteration          int
 }

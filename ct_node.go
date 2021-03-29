@@ -3,7 +3,6 @@ package DCP
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/didiercrunch/paillier"
 	"github.com/google/uuid"
 	"math/rand"
 	"time"
@@ -18,16 +17,15 @@ type ICtNode interface {
 }
 
 type CtNode struct {
-	Id                         uuid.UUID
-	Do DataObject
-	Co                         *CalculationObjectPaillier
-	Ids                        []string
-	coProcessRunning           bool
-	previousConcludedProcesses map[*paillier.PublicKey]struct{}
-	HandledBranchIds           map[uuid.UUID]struct{}
-	TransportLayer             *ChannelTransport
-	Config                     *CtNodeConfig
-	Diagnosis                  *Diagnosis
+	Id               uuid.UUID
+	Do               DataObject
+	Co               *CalculationObjectPaillier
+	Ids              []string
+	coProcessRunning bool
+	HandledBranchIds map[uuid.UUID]struct{}
+	TransportLayer   *ChannelTransport
+	Config           *CtNodeConfig
+	Diagnosis        *Diagnosis
 }
 
 func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
@@ -55,13 +53,12 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 			Counter:  0,
 			Ttl:      config.CoTTL,
 		},
-		Ids:                        ids,
-		coProcessRunning:           false,
-		previousConcludedProcesses: make(map[*paillier.PublicKey]struct{}),
-		HandledBranchIds:           make(map[uuid.UUID]struct{}),
-		TransportLayer:             t,
-		Config:                     config,
-		Diagnosis:                  NewDiagnosis(),
+		Ids:              ids,
+		coProcessRunning: false,
+		HandledBranchIds: make(map[uuid.UUID]struct{}),
+		TransportLayer:   t,
+		Config:           config,
+		Diagnosis:        NewDiagnosis(),
 	}
 }
 
@@ -111,7 +108,6 @@ func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
 				break
 			}
 
-
 			nr := rand.Intn(10-1) + 1
 
 			if nr == 5 {
@@ -123,7 +119,7 @@ func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
 
 				fmt.Printf("Starting process for node %s\n", node.Id)
 				node.Broadcast(nil)
-				}
+			}
 		}
 
 		time.Sleep(1 * time.Second)
@@ -168,15 +164,13 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 				node.Diagnosis.IncrementNumberOfInternalUpdates()
 
 				if node.Co.Counter < co.Counter {
+					node.UpdateDo(*co, *node.Co)
+
 					node.Co.Counter = co.Counter
 					node.Co.Cipher = co.Cipher
 					node.coProcessRunning = false
-					node.previousConcludedProcesses[node.Co.PublicKey] = struct{}{}
 					node.HandledBranchIds[*co.BranchId] = struct{}{}
 				}
-
-				node.UpdateDo()
-
 
 				return
 			}
@@ -215,15 +209,19 @@ func (node *CtNode) IsCalculationProcessRunning() bool {
 	return node.coProcessRunning
 }
 
-func (node *CtNode) UpdateDo() {
-	pt := node.Co.Decrypt(node.Co.Cipher)
-
-	node.Do.Plaintext = node.Do.Plaintext + pt.Int64()
-	node.Do.Counter = node.Do.Counter + node.Co.Counter
+func (node *CtNode) UpdateDo(new CalculationObjectPaillier, old CalculationObjectPaillier) {
+	oldData := node.Co.Decrypt(new.Cipher)
+	newData := node.Co.Decrypt(old.Cipher)
 
 	if node.Do.LatestBranchId != nil {
 		node.Do.DiscardedBranchIds = append(node.Do.DiscardedBranchIds, *node.Do.LatestBranchId)
+
+		node.Do.Plaintext = node.Do.Plaintext - oldData.Int64()
+		node.Do.Counter = node.Do.Counter - old.Counter
 	}
+
+	node.Do.Plaintext = node.Do.Plaintext + newData.Int64()
+	node.Do.Counter = node.Do.Counter + new.Counter
 
 	node.Do.LatestBranchId = node.Co.BranchId
 }
