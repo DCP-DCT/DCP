@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/didiercrunch/paillier"
 	"github.com/google/uuid"
+	"math/rand"
+	"time"
 )
 
 type ICtNode interface {
@@ -40,9 +42,12 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 	return &CtNode{
 		Id: uuid.New(),
 		Do: DataObject{
-			Plaintext: 0,
-			Counter:   0,
-			LatestPk:  nil,
+			Plaintext:          0,
+			Counter:            0,
+			LatestPk:           nil,
+			LatestBranchId:     nil,
+			DiscardedBranchIds: nil,
+			Iteration:          0,
 		},
 		Co: &CalculationObjectPaillier{
 			Id:       uuid.New(),
@@ -85,12 +90,44 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 		if externalCo == nil && !node.coProcessRunning {
 			node.coProcessRunning = true
 			node.Do.LatestPk = objToBroadcast.PublicKey
+			node.Do.Iteration = node.Do.Iteration + 1
 		}
 	})
 }
 
 func (node *CtNode) Listen() {
 	go node.TransportLayer.Listen(node.Id, node.HandleCalculationObject)
+}
+
+func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
+	rand.Seed(time.Now().UnixNano())
+
+	for {
+		select {
+		case <-stop:
+			return
+		default:
+			if node.coProcessRunning {
+				break
+			}
+
+
+			nr := rand.Intn(10-1) + 1
+
+			if nr == 5 {
+				e := InitRoutine(PrepareIdLenCalculation, node)
+				if e != nil {
+					fmt.Println(e)
+					return
+				}
+
+				fmt.Printf("Starting process for node %s\n", node.Id)
+				node.Broadcast(nil)
+				}
+		}
+
+		time.Sleep(1 * time.Second)
+	}
 }
 
 func (node *CtNode) HandleCalculationObject(data []byte) {
@@ -183,6 +220,12 @@ func (node *CtNode) UpdateDo() {
 
 	node.Do.Plaintext = node.Do.Plaintext + pt.Int64()
 	node.Do.Counter = node.Do.Counter + node.Co.Counter
+
+	if node.Do.LatestBranchId != nil {
+		node.Do.DiscardedBranchIds = append(node.Do.DiscardedBranchIds, *node.Do.LatestBranchId)
+	}
+
+	node.Do.LatestBranchId = node.Co.BranchId
 }
 
 func (node CtNode) Print() {

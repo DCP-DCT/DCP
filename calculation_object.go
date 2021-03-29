@@ -14,10 +14,10 @@ type IEval interface {
 }
 
 type ICalculationObject interface {
-	Add()
-	Mul()
+	Add(cipher interface{})
+	Mul(cipher interface{})
 	Encrypt(int) error
-	Decrypt() *big.Int
+	Decrypt(cipher interface{}) *big.Int
 	KeyGen() error
 	Serialize()
 }
