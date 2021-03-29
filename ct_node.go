@@ -17,6 +17,7 @@ type ICtNode interface {
 
 type CtNode struct {
 	Id                         uuid.UUID
+	Do DataObject
 	Co                         *CalculationObjectPaillier
 	Ids                        []string
 	coProcessRunning           bool
@@ -38,6 +39,11 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 
 	return &CtNode{
 		Id: uuid.New(),
+		Do: DataObject{
+			Plaintext: 0,
+			Counter:   0,
+			LatestPk:  nil,
+		},
 		Co: &CalculationObjectPaillier{
 			Id:       uuid.New(),
 			BranchId: nil,
@@ -78,6 +84,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	node.TransportLayer.Broadcast(node.Id, b, func() {
 		if externalCo == nil && !node.coProcessRunning {
 			node.coProcessRunning = true
+			node.Do.LatestPk = objToBroadcast.PublicKey
 		}
 	})
 }
@@ -119,16 +126,24 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		node.Diagnosis.IncrementNumberOfPkMatches()
 
 		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
-			logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
-			node.Diagnosis.IncrementNumberOfInternalUpdates()
+			if node.Do.LatestPk.N.Cmp(co.PublicKey.N) == 0 {
+				logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
+				node.Diagnosis.IncrementNumberOfInternalUpdates()
 
-			node.Co.Counter = co.Counter
-			node.Co.Cipher = co.Cipher
-			node.coProcessRunning = false
-			node.previousConcludedProcesses[node.Co.PublicKey] = struct{}{}
-			node.HandledBranchIds[*co.BranchId] = struct{}{}
+				if node.Co.Counter < co.Counter {
+					node.Co.Counter = co.Counter
+					node.Co.Cipher = co.Cipher
+					node.coProcessRunning = false
+					node.previousConcludedProcesses[node.Co.PublicKey] = struct{}{}
+					node.HandledBranchIds[*co.BranchId] = struct{}{}
+				}
 
-			return
+				node.UpdateDo()
+
+
+				return
+			}
+
 		}
 
 		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
@@ -161,6 +176,13 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 
 func (node *CtNode) IsCalculationProcessRunning() bool {
 	return node.coProcessRunning
+}
+
+func (node *CtNode) UpdateDo() {
+	pt := node.Co.Decrypt(node.Co.Cipher)
+
+	node.Do.Plaintext = node.Do.Plaintext + pt.Int64()
+	node.Do.Counter = node.Do.Counter + node.Co.Counter
 }
 
 func (node CtNode) Print() {

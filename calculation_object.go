@@ -29,7 +29,7 @@ type CalculationObjectPaillier struct {
 	privateKey *paillier.PrivateKey
 	PublicKey  *paillier.PublicKey `json:"public_key"`
 	Cipher     *paillier.Cypher    `json:"cipher"`
-	Ttl        int
+	Ttl        int	`json:"ttl"`
 }
 
 func (cop *CalculationObjectPaillier) KeyGen() error {
