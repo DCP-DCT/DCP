@@ -3,7 +3,7 @@ package DCP
 import "time"
 
 type Timer struct {
-	Timers map[string]time.Duration
+	Timers map[string]time.Duration `json:"timers"`
 }
 
 func (t *Timer) Time(timerName string, from time.Time) {

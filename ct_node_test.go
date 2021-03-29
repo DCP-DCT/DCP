@@ -1,6 +1,8 @@
 package DCP
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/google/uuid"
 	"testing"
 	"time"
@@ -85,6 +87,17 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 
 	msg := node1.Co.Decrypt(node1.Co.Cipher)
 	if msg.String() != "4" {
+		t.Fail()
+	}
+}
+
+func Test_CtNodeMarshal(t *testing.T) {
+	c := NewCtNodeConfig()
+	node := NewCtNode([]string{uuid.New().String()}, c)
+
+	_, e := json.Marshal(node)
+	if e != nil {
+		fmt.Println(e.Error())
 		t.Fail()
 	}
 }

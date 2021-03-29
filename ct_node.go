@@ -17,15 +17,15 @@ type ICtNode interface {
 }
 
 type CtNode struct {
-	Id               uuid.UUID
-	Do               DataObject
-	Co               *CalculationObjectPaillier
-	Ids              []string
+	Id               uuid.UUID                  `json:"id"`
+	Do               DataObject                 `json:"data_object"`
+	Co               *CalculationObjectPaillier `json:"calculation_object"`
+	Ids              []string                   `json:"ids"`
 	coProcessRunning bool
-	HandledBranchIds map[uuid.UUID]struct{}
-	TransportLayer   *ChannelTransport `json:"-"`
-	Config           *CtNodeConfig
-	Diagnosis        *Diagnosis
+	HandledBranchIds map[uuid.UUID]struct{} `json:"handled_branch_ids"`
+	TransportLayer   *ChannelTransport      `json:"-"`
+	Config           *CtNodeConfig          `json:"config"`
+	Diagnosis        *Diagnosis             `json:"diagnosis"`
 }
 
 func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {

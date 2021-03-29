@@ -6,10 +6,10 @@ import (
 )
 
 type DataObject struct {
-	Plaintext          int64
-	Counter            int
-	LatestPk           *paillier.PublicKey
-	LatestBranchId     *uuid.UUID
-	DiscardedBranchIds []uuid.UUID
-	Iteration          int
+	Plaintext          int64               `json:"plaintext"`
+	Counter            int                 `json:"counter"`
+	LatestPk           *paillier.PublicKey `json:"latest_pk"`
+	LatestBranchId     *uuid.UUID          `json:"latest_branch_id"`
+	DiscardedBranchIds []uuid.UUID         `json:"discarded_branch_ids"`
+	Iteration          int                 `json:"iteration"`
 }

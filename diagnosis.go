@@ -1,17 +1,28 @@
 package DCP
 
 import (
+	"encoding/json"
 	"github.com/google/uuid"
 	"time"
 )
 
 type ControlEntity struct {
-	Id       uuid.UUID
-	BranchId uuid.UUID
+	Id       uuid.UUID `json:"id"`
+	BranchId uuid.UUID `json:"branch_id"`
+}
+
+func (ce ControlEntity) MarshalText() ([]byte, error) {
+	type x ControlEntity
+	return json.Marshal(x(ce))
+}
+
+func (ce *ControlEntity) UnmarshalText(text []byte) error {
+	type x ControlEntity
+	return json.Unmarshal(text, (*x)(ce))
 }
 
 type CalculationProcessControlEntity struct {
-	NodesContributedToUpdates map[ControlEntity]int
+	NodesContributedToUpdates map[ControlEntity]int `json:"nodes_contributed_to_updates"`
 }
 
 func (dpce *CalculationProcessControlEntity) RegisterContribution(id uuid.UUID, branchId uuid.UUID, added int) {
@@ -24,15 +35,15 @@ func (dpce *CalculationProcessControlEntity) RegisterContribution(id uuid.UUID, 
 }
 
 type Diagnosis struct {
-	NumberOfBroadcasts             int
-	NumberOfUpdates                int
-	NumberOfRejectedDueToThreshold int
-	NumberOfDuplicates             int
-	NumberOfPkMatches              int
-	NumberOfInternalUpdates        int
-	NumberOfPacketsDropped         int
-	Control                        *CalculationProcessControlEntity
-	Timers                         *Timer
+	NumberOfBroadcasts             int                              `json:"number_of_broadcasts"`
+	NumberOfUpdates                int                              `json:"number_of_updates"`
+	NumberOfRejectedDueToThreshold int                              `json:"number_of_rejected_due_to_threshold"`
+	NumberOfDuplicates             int                              `json:"number_of_duplicates"`
+	NumberOfPkMatches              int                              `json:"number_of_pk_matches"`
+	NumberOfInternalUpdates        int                              `json:"number_of_internal_updates"`
+	NumberOfPacketsDropped         int                              `json:"number_of_packets_dropped"`
+	Control                        *CalculationProcessControlEntity `json:"control"`
+	Timers                         *Timer                           `json:"timers"`
 }
 
 func NewDiagnosis() *Diagnosis {
