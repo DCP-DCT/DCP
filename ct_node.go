@@ -23,7 +23,7 @@ type CtNode struct {
 	Ids              []string
 	coProcessRunning bool
 	HandledBranchIds map[uuid.UUID]struct{}
-	TransportLayer   *ChannelTransport
+	TransportLayer   *ChannelTransport `json:"-"`
 	Config           *CtNodeConfig
 	Diagnosis        *Diagnosis
 }

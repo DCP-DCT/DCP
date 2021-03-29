@@ -1,6 +1,9 @@
 package DCP
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type ControlEntity struct {
 	Id       uuid.UUID
@@ -29,6 +32,7 @@ type Diagnosis struct {
 	NumberOfInternalUpdates        int
 	NumberOfPacketsDropped         int
 	Control                        *CalculationProcessControlEntity
+	Timers                         *Timer
 }
 
 func NewDiagnosis() *Diagnosis {
@@ -42,6 +46,9 @@ func NewDiagnosis() *Diagnosis {
 		NumberOfPacketsDropped:         0,
 		Control: &CalculationProcessControlEntity{
 			NodesContributedToUpdates: make(map[ControlEntity]int),
+		},
+		Timers: &Timer{
+			Timers: make(map[string]time.Duration),
 		},
 	}
 }
