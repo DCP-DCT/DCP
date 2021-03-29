@@ -3,7 +3,6 @@ package DCP
 import (
 	"encoding/json"
 	"github.com/google/uuid"
-	"time"
 )
 
 type ControlEntity struct {
@@ -59,7 +58,7 @@ func NewDiagnosis() *Diagnosis {
 			NodesContributedToUpdates: make(map[ControlEntity]int),
 		},
 		Timers: &Timer{
-			Timers: make(map[string]time.Duration),
+			Timers: make(map[string]TimerEntry),
 		},
 	}
 }
