@@ -127,6 +127,8 @@ func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
 }
 
 func (node *CtNode) HandleCalculationObject(data []byte) {
+	defer node.Diagnosis.Timers.Time(NewTimer("HandleCalculationObject"))
+
 	var co = &CalculationObjectPaillier{}
 	e := json.Unmarshal(data, co)
 	if e != nil {
