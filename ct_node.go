@@ -164,7 +164,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 				node.Diagnosis.IncrementNumberOfInternalUpdates()
 
 				if node.Co.Counter < co.Counter {
-					node.UpdateDo(*co, *node.Co)
+					node.UpdateDo(*node.Co, *co)
 
 					node.Co.Counter = co.Counter
 					node.Co.Cipher = co.Cipher
