@@ -158,6 +158,8 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 	}
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
+		s, st := NewTimer("PublicKeyClause")
+
 		node.Diagnosis.IncrementNumberOfPkMatches()
 
 		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
@@ -183,11 +185,14 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
 		node.Broadcast(co)
+		node.Diagnosis.Timers.Time(s, st)
 		return
 	}
 
 	logf(node.Config.SuppressLogging, "Running update in node %s\n", node.Id)
 	node.Diagnosis.IncrementNumberOfUpdates()
+
+	defer node.Diagnosis.Timers.Time(NewTimer("UpdateCalculationObject"))
 
 	idLen := len(node.Ids)
 	cipher, e := co.Encrypt(idLen)
