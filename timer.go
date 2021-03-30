@@ -4,7 +4,6 @@ import "time"
 
 type TimerEntry struct {
 	Avg     int64   `json:"avg"`
-	Series  []int64 `json:"series"`
 	Counter int     `json:"counter"`
 }
 
@@ -27,7 +26,6 @@ func (t *Timer) Time(timerName string, from time.Time) {
 	runTime := endTime.Sub(from)
 
 	timerEntry.Avg = (timerEntry.Avg + int64(runTime)) / int64(timerEntry.Counter)
-	timerEntry.Series = append(timerEntry.Series, int64(runTime))
 	timerEntry.Counter = timerEntry.Counter + 1
 
 	t.Timers[timerName] = timerEntry
