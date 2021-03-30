@@ -216,9 +216,9 @@ func (node *CtNode) IsCalculationProcessRunning() bool {
 	return node.coProcessRunning
 }
 
-func (node *CtNode) UpdateDo(new CalculationObjectPaillier, old CalculationObjectPaillier) {
-	oldData := node.Co.Decrypt(new.Cipher)
-	newData := node.Co.Decrypt(old.Cipher)
+func (node *CtNode) UpdateDo(old CalculationObjectPaillier, new CalculationObjectPaillier) {
+	oldData := node.Co.Decrypt(old.Cipher)
+	newData := node.Co.Decrypt(new.Cipher)
 
 	if node.Do.LatestBranchId != nil {
 		node.Do.DiscardedBranchIds = append(node.Do.DiscardedBranchIds, *node.Do.LatestBranchId)
@@ -230,7 +230,7 @@ func (node *CtNode) UpdateDo(new CalculationObjectPaillier, old CalculationObjec
 	node.Do.Plaintext = node.Do.Plaintext + newData.Int64()
 	node.Do.Counter = node.Do.Counter + new.Counter
 
-	node.Do.LatestBranchId = node.Co.BranchId
+	node.Do.LatestBranchId = new.BranchId
 }
 
 func (node CtNode) Print() {
