@@ -23,9 +23,9 @@ type ICalculationObject interface {
 }
 
 type CalculationObjectPaillier struct {
-	Id         uuid.UUID  `json:"id"`
+	Id         uuid.UUID `json:"id"`
 	BranchId   uuid.UUID `json:"branch_id"`
-	Counter    int        `json:"counter"`
+	Counter    int       `json:"counter"`
 	privateKey *paillier.PrivateKey
 	PublicKey  *paillier.PublicKey `json:"public_key"`
 	Cipher     *paillier.Cypher    `json:"cipher"`

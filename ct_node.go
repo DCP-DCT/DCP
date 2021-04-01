@@ -24,7 +24,7 @@ type CtNode struct {
 	ProcessRunning   bool                       `json:"process_running"`
 	HandledBranchIds map[uuid.UUID]struct{}     `json:"handled_branch_ids"`
 	TransportLayer   *ChannelTransport          `json:"-"`
-	Config           CtNodeConfig              `json:"config"`
+	Config           CtNodeConfig               `json:"config"`
 	Diagnosis        *Diagnosis                 `json:"diagnosis"`
 }
 
@@ -120,26 +120,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		s, st := NewTimer("PublicKeyClause")
 
-		node.Diagnosis.IncrementNumberOfPkMatches()
-
-		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
-			node.Diagnosis.IncrementNumberOfInternalUpdates()
-
-			if node.Co.Counter < co.Counter {
-				logf(node.Config.SuppressLogging, "Updating accepted DO in node %s. BranchId: %s\n", node.Id, co.BranchId)
-				node.UpdateDo(*node.Co, co)
-
-				node.Co.Counter = co.Counter
-
-				*node.Co.Cipher = *co.Cipher
-				node.ProcessRunning = false
-			}
-		} else {
-			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
-			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
-
-			node.Broadcast(&co)
-		}
+		node.handlePkMatch(co)
 
 		node.Diagnosis.Timers.Time(s, st)
 		return nil
@@ -161,9 +142,19 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 	logf(node.Config.SuppressLogging, "Running update in node: %s on branchId: %s\n", node.Id, co.BranchId)
 	node.Diagnosis.IncrementNumberOfUpdates()
-
 	defer node.Diagnosis.Timers.Time(NewTimer("UpdateCalculationObject"))
 
+	e = node.updateCalculationObject(&co)
+	if e != nil {
+		return e
+	}
+
+	node.Broadcast(&co)
+
+	return nil
+}
+
+func (node *CtNode) updateCalculationObject(co *CalculationObjectPaillier) error {
 	idLen := len(node.Ids)
 	cipher, e := co.Encrypt(idLen)
 	if e != nil {
@@ -176,8 +167,6 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 	node.Diagnosis.Control.RegisterContribution(co.Id, co.BranchId, len(node.Ids))
 	node.HandledBranchIds[co.BranchId] = struct{}{}
-
-	node.Broadcast(&co)
 
 	return nil
 }
@@ -197,6 +186,29 @@ func (node *CtNode) UpdateDo(old CalculationObjectPaillier, new CalculationObjec
 	node.Do.Counter = node.Do.Counter + new.Counter
 
 	node.Do.LatestBranchId = new.BranchId
+}
+
+func (node *CtNode) handlePkMatch(co CalculationObjectPaillier) {
+	node.Diagnosis.IncrementNumberOfPkMatches()
+
+	if co.Counter >= node.Config.NodeVisitDecryptThreshold {
+		node.Diagnosis.IncrementNumberOfInternalUpdates()
+
+		if node.Co.Counter < co.Counter {
+			logf(node.Config.SuppressLogging, "Updating accepted DO in node %s. BranchId: %s\n", node.Id, co.BranchId)
+			node.UpdateDo(*node.Co, co)
+
+			node.Co.Counter = co.Counter
+
+			*node.Co.Cipher = *co.Cipher
+			node.ProcessRunning = false
+		}
+	} else {
+		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
+		node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
+
+		node.Broadcast(&co)
+	}
 }
 
 func (node CtNode) Print() {
