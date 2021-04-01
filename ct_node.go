@@ -168,23 +168,21 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 				node.Diagnosis.IncrementNumberOfInternalUpdates()
 
 				if node.Co.Counter < co.Counter {
+					logf(node.Config.SuppressLogging, "Updating accepted DO in node %s\n", node.Id)
 					node.UpdateDo(*node.Co, *co)
 
 					node.Co.Counter = co.Counter
 					node.Co.Cipher = co.Cipher
 					node.coProcessRunning = false
-					node.HandledBranchIds[*co.BranchId] = struct{}{}
 				}
-
-				return
 			}
+		} else {
+			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
+			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
+			node.Broadcast(co)
 		}
 
-		logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
-		node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
-
-		node.Broadcast(co)
 		node.Diagnosis.Timers.Time(s, st)
 		return
 	}

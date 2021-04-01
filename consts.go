@@ -2,5 +2,5 @@ package DCP
 
 const (
 	defaultNodeVisitDecryptThreshold = 10
-	defaultCalculationObjectTTL      = 50
+	defaultCalculationObjectTTL      = 25
 )

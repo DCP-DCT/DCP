@@ -3,8 +3,8 @@ package DCP
 import "time"
 
 type TimerEntry struct {
-	Avg     int64   `json:"avg"`
-	Counter int     `json:"counter"`
+	Avg     int64 `json:"avg"`
+	Counter int   `json:"counter"`
 }
 
 type Timer struct {
