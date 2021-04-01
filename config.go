@@ -9,8 +9,8 @@ type CtNodeConfig struct {
 	CoTTL                     int
 }
 
-func NewCtNodeConfig() *CtNodeConfig {
-	return &CtNodeConfig{
+func NewCtNodeConfig() CtNodeConfig {
+	return CtNodeConfig{
 		NodeVisitDecryptThreshold: defaultNodeVisitDecryptThreshold,
 		SuppressLogging:           false,
 		Throttle:                  nil,

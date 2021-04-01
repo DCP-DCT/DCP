@@ -24,11 +24,11 @@ type CtNode struct {
 	ProcessRunning   bool                       `json:"process_running"`
 	HandledBranchIds map[uuid.UUID]struct{}     `json:"handled_branch_ids"`
 	TransportLayer   *ChannelTransport          `json:"-"`
-	Config           *CtNodeConfig              `json:"config"`
+	Config           CtNodeConfig              `json:"config"`
 	Diagnosis        *Diagnosis                 `json:"diagnosis"`
 }
 
-func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
+func NewCtNode(ids []string, config CtNodeConfig) *CtNode {
 	t := &ChannelTransport{
 		DataCh:          make(chan []byte),
 		ReachableNodes:  make(map[chan []byte]struct{}),
