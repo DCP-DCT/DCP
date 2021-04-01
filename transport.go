@@ -1,6 +1,7 @@
 package DCP
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"sync"
 	"time"
@@ -31,7 +32,8 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 		defer wg.Done()
 
 		for obj := range chT.DataCh {
-			logf(chT.SuppressLogging, "Listen triggered in node %s\n", nodeId)
+			fmt.Println(len(chT.DataCh))
+			logf(chT.SuppressLogging, "Listen triggered in node %s. Queue size: %d\n", nodeId, len(chT.DataCh))
 			if obj != nil {
 				if chT.Throttle != nil {
 					time.Sleep(*chT.Throttle)
@@ -49,11 +51,6 @@ func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj []byte, onTrigger O
 	onTrigger()
 
 	for rn := range chT.ReachableNodes {
-		go func(rn chan []byte) {
-			select {
-			case rn <- obj:
-			default:
-			}
-		}(rn)
+		rn <- obj
 	}
 }

@@ -144,17 +144,17 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		node.Diagnosis.IncrementNumberOfPkMatches()
 
 		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
-				logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
-				node.Diagnosis.IncrementNumberOfInternalUpdates()
+			logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
+			node.Diagnosis.IncrementNumberOfInternalUpdates()
 
-				if node.Co.Counter < co.Counter {
-					logf(node.Config.SuppressLogging, "Updating accepted DO in node %s\n", node.Id)
-					node.UpdateDo(*node.Co, *co)
+			if node.Co.Counter < co.Counter {
+				logf(node.Config.SuppressLogging, "Updating accepted DO in node %s\n", node.Id)
+				node.UpdateDo(*node.Co, *co)
 
-					node.Co.Counter = co.Counter
+				node.Co.Counter = co.Counter
 
-					*node.Co.Cipher = *co.Cipher
-					node.coProcessRunning = false
+				*node.Co.Cipher = *co.Cipher
+				node.coProcessRunning = false
 			}
 		} else {
 			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
