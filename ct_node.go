@@ -71,9 +71,9 @@ func InitRoutine(fn Prepare, node *CtNode) error {
 func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	var objToBroadcast *CalculationObjectPaillier
 	if externalCo != nil {
-		objToBroadcast = externalCo
+		*objToBroadcast = *externalCo
 	} else {
-		objToBroadcast = node.Co
+		*objToBroadcast = *node.Co
 	}
 
 	b, e := json.Marshal(objToBroadcast)
@@ -88,7 +88,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	node.TransportLayer.Broadcast(node.Id, b, func() {
 		if externalCo == nil && !node.coProcessRunning {
 			node.coProcessRunning = true
-			node.Do.LatestPk = objToBroadcast.PublicKey
+			*node.Do.LatestPk = *objToBroadcast.PublicKey
 			node.Do.Iteration = node.Do.Iteration + 1
 		}
 	})
@@ -144,7 +144,6 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		node.Diagnosis.IncrementNumberOfPkMatches()
 
 		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
-			if node.Do.LatestPk.N.Cmp(co.PublicKey.N) == 0 {
 				logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
 				node.Diagnosis.IncrementNumberOfInternalUpdates()
 
@@ -153,9 +152,9 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 					node.UpdateDo(*node.Co, *co)
 
 					node.Co.Counter = co.Counter
-					node.Co.Cipher = co.Cipher
+
+					*node.Co.Cipher = *co.Cipher
 					node.coProcessRunning = false
-				}
 			}
 		} else {
 			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
