@@ -148,7 +148,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		co.BranchId = &newBranchId
 	}
 
-	logf(node.Config.SuppressLogging, "Listen triggered in node %s. CoId: %s. CoBranchId: %s\n", node.Id, co.Id.String(), co.BranchId.String())
+	logf(node.Config.SuppressLogging, "Listen triggered in node %s. CoId: %s. CoBranchId: %s\n", node.Id, co.Id, co.BranchId)
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		s, st := NewTimer("PublicKeyClause")
@@ -168,7 +168,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 				node.ProcessRunning = false
 			}
 		} else {
-			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
+			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node)
 			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
 			node.Broadcast(&co)
@@ -180,13 +180,13 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 
 	co.Ttl = co.Ttl - 1
 	if co.Ttl <= 0 {
-		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl\n", co.BranchId.String())
+		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl\n", co.BranchId)
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
 		return
 	}
 
 	if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
-		logf(node.Config.SuppressLogging, "BranchId: %s already handled\n", co.BranchId.String())
+		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfDuplicates()
 
 		node.Broadcast(&co)
@@ -194,7 +194,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		return
 	}
 
-	logf(node.Config.SuppressLogging, "Running update in node %s\n", node.Id)
+	logf(node.Config.SuppressLogging, "Running update in node %s on branchId: %s\n", node.Id, co.BranchId)
 	node.Diagnosis.IncrementNumberOfUpdates()
 
 	defer node.Diagnosis.Timers.Time(NewTimer("UpdateCalculationObject"))
