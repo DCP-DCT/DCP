@@ -158,8 +158,11 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
 			node.Diagnosis.IncrementNumberOfInternalUpdates()
+			node.Co.Counter = co.Counter
 
-			if node.Co.Counter < co.Counter {
+			*node.Co.Cipher = *co.Cipher
+			node.ProcessRunning = false
+			/*if node.Co.Counter < co.Counter {
 				logf(node.Config.SuppressLogging, "Updating accepted DO in node %s. BranchId: %s\n", node.Id, co.BranchId)
 				node.UpdateDo(*node.Co, co)
 
@@ -167,7 +170,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 				*node.Co.Cipher = *co.Cipher
 				node.ProcessRunning = false
-			}
+			}*/
 		} else {
 			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
 			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
