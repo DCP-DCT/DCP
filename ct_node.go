@@ -42,13 +42,13 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 			Plaintext:          0,
 			Counter:            0,
 			LatestPk:           nil,
-			LatestBranchId:     nil,
+			LatestBranchId:     uuid.Nil,
 			DiscardedBranchIds: nil,
 			Iteration:          0,
 		},
 		Co: &CalculationObjectPaillier{
 			Id:       uuid.New(),
-			BranchId: nil,
+			BranchId: uuid.Nil,
 			Counter:  0,
 			Ttl:      config.CoTTL,
 		},
@@ -108,10 +108,9 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 		return e
 	}
 
-	if co.BranchId == nil {
+	if co.BranchId == uuid.Nil {
 		// First handle, set branch
-		newBranchId := uuid.New()
-		co.BranchId = &newBranchId
+		co.BranchId = uuid.New()
 	}
 
 	co.Ttl = co.Ttl - 1
@@ -146,14 +145,13 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 		return nil
 	}
 
-
 	if co.Ttl <= 0 {
 		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl by nodeId: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
 		return nil
 	}
 
-	if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
+	if _, exist := node.HandledBranchIds[co.BranchId]; exist {
 		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfDuplicates()
 
@@ -176,8 +174,8 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 	co.Add(cipher)
 	co.Counter = co.Counter + 1
 
-	node.Diagnosis.Control.RegisterContribution(co.Id, *co.BranchId, len(node.Ids))
-	node.HandledBranchIds[*co.BranchId] = struct{}{}
+	node.Diagnosis.Control.RegisterContribution(co.Id, co.BranchId, len(node.Ids))
+	node.HandledBranchIds[co.BranchId] = struct{}{}
 
 	node.Broadcast(&co)
 
@@ -188,8 +186,8 @@ func (node *CtNode) UpdateDo(old CalculationObjectPaillier, new CalculationObjec
 	oldData := node.Co.Decrypt(old.Cipher)
 	newData := node.Co.Decrypt(new.Cipher)
 
-	if node.Do.LatestBranchId != nil {
-		node.Do.DiscardedBranchIds = append(node.Do.DiscardedBranchIds, *node.Do.LatestBranchId)
+	if node.Do.LatestBranchId != uuid.Nil {
+		node.Do.DiscardedBranchIds = append(node.Do.DiscardedBranchIds, node.Do.LatestBranchId)
 
 		node.Do.Plaintext = node.Do.Plaintext - oldData.Int64()
 		node.Do.Counter = node.Do.Counter - old.Counter
