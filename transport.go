@@ -51,12 +51,6 @@ func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj []byte, onTrigger O
 	onTrigger()
 
 	for rn := range chT.ReachableNodes {
-		go func(rn chan []byte) {
-			select {
-			case rn <- obj:
-				return
-			default:
-			}
-		}(rn)
+		rn <- obj
 	}
 }

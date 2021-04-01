@@ -73,7 +73,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	if externalCo != nil {
 		*objToBroadcast = *externalCo
 	} else {
-		*objToBroadcast = *node.Co
+		objToBroadcast = node.Co
 	}
 
 	b, e := json.Marshal(objToBroadcast)
