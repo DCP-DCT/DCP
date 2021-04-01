@@ -30,7 +30,7 @@ type CtNode struct {
 
 func NewCtNode(ids []string, config CtNodeConfig) *CtNode {
 	t := &ChannelTransport{
-		DataCh:          make(chan []byte),
+		DataCh:          make(chan []byte, 1000),
 		ReachableNodes:  make(map[chan []byte]struct{}),
 		SuppressLogging: config.SuppressLogging,
 		Throttle:        config.Throttle,
@@ -83,7 +83,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	logf(node.Config.SuppressLogging, "Broadcasting Node: %s BranchId: %s, Current count: %d, Current TTL %d\n", node.Id.String(), objToBroadcast.BranchId, objToBroadcast.Counter, objToBroadcast.Ttl)
 	node.Diagnosis.IncrementNumberOfBroadcasts()
 
-	node.TransportLayer.Broadcast(node.Id, b, func() {
+	go node.TransportLayer.Broadcast(node.Id, b, func() {
 		if externalCo == nil && !node.ProcessRunning {
 			node.ProcessRunning = true
 
