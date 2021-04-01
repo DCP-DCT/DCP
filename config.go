@@ -2,6 +2,8 @@ package DCP
 
 import "time"
 
+var NrOfBranches int
+
 type CtNodeConfig struct {
 	NodeVisitDecryptThreshold int
 	SuppressLogging           bool
@@ -16,4 +18,8 @@ func NewCtNodeConfig() CtNodeConfig {
 		Throttle:                  nil,
 		CoTTL:                     defaultCalculationObjectTTL,
 	}
+}
+
+func GetNrOfActiveBranches() int {
+	return NrOfBranches
 }

@@ -62,6 +62,7 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 	node1.Broadcast(nil)
 
 	time.Sleep(1 * time.Millisecond)
+	fmt.Println(NrOfBranches)
 }
 
 func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {

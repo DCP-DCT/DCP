@@ -111,6 +111,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 	if co.BranchId == uuid.Nil {
 		// First handle, set branch
 		co.BranchId = uuid.New()
+		NrOfBranches++
 	}
 
 	co.Ttl = co.Ttl - 1
