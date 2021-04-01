@@ -3,6 +3,7 @@ package DCP
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/didiercrunch/paillier"
 	"github.com/google/uuid"
 	"log"
 	"math/rand"
@@ -69,11 +70,11 @@ func InitRoutine(fn Prepare, node *CtNode) error {
 }
 
 func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
-	var objToBroadcast *CalculationObjectPaillier
+	var objToBroadcast CalculationObjectPaillier
 	if externalCo != nil {
-		*objToBroadcast = *externalCo
+		objToBroadcast = *externalCo
 	} else {
-		objToBroadcast = node.Co
+		objToBroadcast = *node.Co
 	}
 
 	b, e := json.Marshal(objToBroadcast)
@@ -88,6 +89,8 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	node.TransportLayer.Broadcast(node.Id, b, func() {
 		if externalCo == nil && !node.coProcessRunning {
 			node.coProcessRunning = true
+			node.Do.LatestPk = new(paillier.PublicKey)
+
 			*node.Do.LatestPk = *objToBroadcast.PublicKey
 			node.Do.Iteration = node.Do.Iteration + 1
 		}
