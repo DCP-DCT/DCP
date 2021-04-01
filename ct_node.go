@@ -132,6 +132,7 @@ func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
 }
 
 func (node *CtNode) HandleCalculationObject(data []byte) {
+
 	defer node.Diagnosis.Timers.Time(NewTimer("HandleCalculationObject"))
 
 	var co = CalculationObjectPaillier{}
@@ -141,17 +142,24 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		return
 	}
 
+	if co.BranchId == nil {
+		// First handle, set branch
+		newBranchId := uuid.New()
+		co.BranchId = &newBranchId
+	}
+
+	logf(node.Config.SuppressLogging, "Listen triggered in node %s. CoId: %s. CoBranchId: %s\n", node.Id, co.Id.String(), co.BranchId.String())
+
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
 		s, st := NewTimer("PublicKeyClause")
 
 		node.Diagnosis.IncrementNumberOfPkMatches()
 
 		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
-			logLn(node.Config.SuppressLogging, "Calculation process finished, updating internal CalculationObject")
 			node.Diagnosis.IncrementNumberOfInternalUpdates()
 
 			if node.Co.Counter < co.Counter {
-				logf(node.Config.SuppressLogging, "Updating accepted DO in node %s\n", node.Id)
+				logf(node.Config.SuppressLogging, "Updating accepted DO in node %s. BranchId: %s\n", node.Id, co.BranchId)
 				node.UpdateDo(*node.Co, co)
 
 				node.Co.Counter = co.Counter
@@ -160,7 +168,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 				node.ProcessRunning = false
 			}
 		} else {
-			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
+			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
 			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
 			node.Broadcast(&co)
@@ -172,16 +180,12 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 
 	co.Ttl = co.Ttl - 1
 	if co.Ttl <= 0 {
-		logf(node.Config.SuppressLogging, "CalculationObject: %s dropped due to expired ttl\n", co.Id.String())
+		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl\n", co.BranchId.String())
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
 		return
 	}
 
-	if co.BranchId == nil {
-		// First handle, set branch
-		newBranchId := uuid.New()
-		co.BranchId = &newBranchId
-	} else if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
+	if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
 		logf(node.Config.SuppressLogging, "BranchId: %s already handled\n", co.BranchId.String())
 		node.Diagnosis.IncrementNumberOfDuplicates()
 

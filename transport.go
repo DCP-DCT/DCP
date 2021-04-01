@@ -31,7 +31,6 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 		defer wg.Done()
 
 		for obj := range chT.DataCh {
-			logf(chT.SuppressLogging, "Listen triggered in node %s\n", nodeId)
 			if obj != nil {
 				if chT.Throttle != nil {
 					time.Sleep(*chT.Throttle)
