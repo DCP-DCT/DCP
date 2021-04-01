@@ -2,11 +2,12 @@ package DCP
 
 import (
 	"github.com/google/uuid"
+	"log"
 	"sync"
 	"time"
 )
 
-type Handler func([]byte)
+type Handler func([]byte) error
 
 type OnTrigger func()
 
@@ -36,7 +37,10 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 					time.Sleep(*chT.Throttle)
 				}
 
-				handler(obj)
+				e := handler(obj)
+				if e != nil {
+					log.Panic(e.Error())
+				}
 			}
 		}
 	}()

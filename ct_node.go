@@ -131,15 +131,14 @@ func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
 	}
 }
 
-func (node *CtNode) HandleCalculationObject(data []byte) {
+func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 	defer node.Diagnosis.Timers.Time(NewTimer("HandleCalculationObject"))
 
 	var co = CalculationObjectPaillier{}
 	e := json.Unmarshal(data, &co)
 	if e != nil {
-		log.Panic(e.Error())
-		return
+		return e
 	}
 
 	if co.BranchId == nil {
@@ -171,27 +170,28 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
 			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
+			co.Ttl -= 1
 			node.Broadcast(&co)
 		}
 
 		node.Diagnosis.Timers.Time(s, st)
-		return
+		return nil
 	}
 
 	co.Ttl -= 1
 	if co.Ttl <= 0 {
 		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl by nodeId: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
-		return
+		return nil
 	}
 
 	if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
-		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s\n", co.BranchId, node.Id)
+		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s. Current TTL: %d\n", co.BranchId, node.Id, co.Ttl)
 		node.Diagnosis.IncrementNumberOfDuplicates()
 
 		node.Broadcast(&co)
 
-		return
+		return nil
 	}
 
 	logf(node.Config.SuppressLogging, "Running update in node: %s on branchId: %s\n", node.Id, co.BranchId)
@@ -202,8 +202,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 	idLen := len(node.Ids)
 	cipher, e := co.Encrypt(idLen)
 	if e != nil {
-		log.Panic(e.Error())
-		return
+		return e
 	}
 
 	// Add to co cipher
@@ -214,7 +213,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 	node.HandledBranchIds[*co.BranchId] = struct{}{}
 
 	node.Broadcast(&co)
-	return
+	return nil
 }
 
 func (node *CtNode) UpdateDo(old CalculationObjectPaillier, new CalculationObjectPaillier) {
