@@ -29,8 +29,8 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 	_ = node1.Co.KeyGen()
 	_ = node2.Co.KeyGen()
 
-	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = node2.TransportLayer.StopCh
-	node2.TransportLayer.ReachableNodes[node1.TransportLayer.DataCh] = node1.TransportLayer.StopCh
+	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = struct{}{}
+	node2.TransportLayer.ReachableNodes[node1.TransportLayer.DataCh] = struct{}{}
 
 	_ = InitRoutine(PrepareIdLenCalculation, node1)
 
@@ -50,9 +50,9 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 	_ = node2.Co.KeyGen()
 	_ = node3.Co.KeyGen()
 
-	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = node2.TransportLayer.StopCh
-	node2.TransportLayer.ReachableNodes[node3.TransportLayer.DataCh] = node3.TransportLayer.StopCh
-	node3.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = node2.TransportLayer.StopCh
+	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = struct{}{}
+	node2.TransportLayer.ReachableNodes[node3.TransportLayer.DataCh] = struct{}{}
+	node3.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = struct{}{}
 
 	_ = InitRoutine(PrepareIdLenCalculation, node1)
 
@@ -73,8 +73,8 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 	_ = node1.Co.KeyGen()
 	_ = node2.Co.KeyGen()
 
-	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = node2.TransportLayer.StopCh
-	node2.TransportLayer.ReachableNodes[node1.TransportLayer.DataCh] = node1.TransportLayer.StopCh
+	node1.TransportLayer.ReachableNodes[node2.TransportLayer.DataCh] = struct{}{}
+	node2.TransportLayer.ReachableNodes[node1.TransportLayer.DataCh] = struct{}{}
 
 	_ = InitRoutine(PrepareIdLenCalculation, node1)
 

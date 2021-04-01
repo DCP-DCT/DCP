@@ -6,8 +6,6 @@ import (
 	"github.com/didiercrunch/paillier"
 	"github.com/google/uuid"
 	"log"
-	"math/rand"
-	"time"
 )
 
 type ICtNode interface {
@@ -33,8 +31,7 @@ type CtNode struct {
 func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 	t := &ChannelTransport{
 		DataCh:          make(chan []byte),
-		StopCh:          make(chan struct{}),
-		ReachableNodes:  make(map[chan []byte]chan struct{}),
+		ReachableNodes:  make(map[chan []byte]struct{}),
 		SuppressLogging: config.SuppressLogging,
 		Throttle:        config.Throttle,
 	}
@@ -101,36 +98,6 @@ func (node *CtNode) Listen() {
 	go node.TransportLayer.Listen(node.Id, node.HandleCalculationObject)
 }
 
-func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
-	rand.Seed(time.Now().UnixNano())
-
-	for {
-		select {
-		case <-stop:
-			return
-		default:
-			if node.ProcessRunning {
-				break
-			}
-
-			nr := rand.Intn(10-1) + 1
-
-			if nr == 5 {
-				e := InitRoutine(PrepareIdLenCalculation, node)
-				if e != nil {
-					log.Panic(e.Error())
-					return
-				}
-
-				fmt.Printf("Starting process for node %s\n", node.Id)
-				node.Broadcast(nil)
-			}
-		}
-
-		time.Sleep(1 * time.Second)
-	}
-}
-
 func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 	defer node.Diagnosis.Timers.Time(NewTimer("HandleCalculationObject"))
@@ -158,11 +125,8 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 		if co.Counter >= node.Config.NodeVisitDecryptThreshold {
 			node.Diagnosis.IncrementNumberOfInternalUpdates()
-			node.Co.Counter = co.Counter
 
-			*node.Co.Cipher = *co.Cipher
-			node.ProcessRunning = false
-			/*if node.Co.Counter < co.Counter {
+			if node.Co.Counter < co.Counter {
 				logf(node.Config.SuppressLogging, "Updating accepted DO in node %s. BranchId: %s\n", node.Id, co.BranchId)
 				node.UpdateDo(*node.Co, co)
 
@@ -170,7 +134,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 				*node.Co.Cipher = *co.Cipher
 				node.ProcessRunning = false
-			}*/
+			}
 		} else {
 			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
 			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()

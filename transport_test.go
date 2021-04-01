@@ -14,13 +14,12 @@ type Packet struct {
 func TestChannelTransport_Broadcast(t *testing.T) {
 	chT := ChannelTransport{
 		DataCh:         make(chan []byte),
-		StopCh:         make(chan struct{}),
-		ReachableNodes: make(map[chan []byte]chan struct{}),
+		ReachableNodes: make(map[chan []byte]struct{}),
 	}
 
 	node1Chan := make(chan []byte)
 
-	chT.ReachableNodes[node1Chan] = nil
+	chT.ReachableNodes[node1Chan] = struct{}{}
 
 	packet := &Packet{
 		Msg: "foobar",
@@ -44,8 +43,7 @@ func TestChannelTransport_Broadcast(t *testing.T) {
 func TestChannelTransport_Listener(t *testing.T) {
 	chT := ChannelTransport{
 		DataCh:         make(chan []byte),
-		StopCh:         make(chan struct{}),
-		ReachableNodes: make(map[chan []byte]chan struct{}),
+		ReachableNodes: make(map[chan []byte]struct{}),
 	}
 
 	go chT.Listen(uuid.New(), func(i []byte) error {
@@ -71,18 +69,16 @@ func TestChannelTransport_Listener(t *testing.T) {
 func TestChannelTransport_ListenerAndBroadcast(t *testing.T) {
 	broadcaster := ChannelTransport{
 		DataCh:         make(chan []byte),
-		StopCh:         make(chan struct{}),
-		ReachableNodes: make(map[chan []byte]chan struct{}),
+		ReachableNodes: make(map[chan []byte]struct{}),
 	}
 
 	listener := ChannelTransport{
 		DataCh:         make(chan []byte),
-		StopCh:         make(chan struct{}),
-		ReachableNodes: make(map[chan []byte]chan struct{}),
+		ReachableNodes: make(map[chan []byte]struct{}),
 	}
 
-	broadcaster.ReachableNodes[listener.DataCh] = listener.StopCh
-	listener.ReachableNodes[broadcaster.DataCh] = broadcaster.StopCh
+	broadcaster.ReachableNodes[listener.DataCh] = struct{}{}
+	listener.ReachableNodes[broadcaster.DataCh] = struct{}{}
 
 	go listener.Listen(uuid.New(), func(i []byte) error {
 		return nil
