@@ -147,6 +147,8 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 		co.BranchId = &newBranchId
 	}
 
+	co.Ttl = co.Ttl - 1
+
 	logf(node.Config.SuppressLogging, "Listen triggered in node %s. CoId: %s. CoBranchId: %s\n", node.Id, co.Id, co.BranchId)
 
 	if node.Co.PublicKey.N.Cmp(co.PublicKey.N) == 0 {
@@ -170,7 +172,6 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
 			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
-			co.Ttl -= 1
 			node.Broadcast(&co)
 		}
 
@@ -178,7 +179,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 		return nil
 	}
 
-	co.Ttl -= 1
+
 	if co.Ttl <= 0 {
 		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl by nodeId: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
@@ -213,6 +214,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 	node.HandledBranchIds[*co.BranchId] = struct{}{}
 
 	node.Broadcast(&co)
+
 	return nil
 }
 
