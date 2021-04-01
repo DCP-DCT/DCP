@@ -3,7 +3,6 @@ package DCP
 import (
 	"github.com/google/uuid"
 	"log"
-	"sync"
 	"time"
 )
 
@@ -25,13 +24,14 @@ type ChannelTransport struct {
 }
 
 func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
-	wg := sync.WaitGroup{}
-	wg.Add(1)
+	/*wg := sync.WaitGroup{}
+	wg.Add(1)*/
 
 	go func() {
-		defer wg.Done()
+		//defer wg.Done()
 
-		for obj := range chT.DataCh {
+		for {
+			obj := <- chT.DataCh
 			if obj != nil {
 				if chT.Throttle != nil {
 					time.Sleep(*chT.Throttle)
@@ -43,9 +43,22 @@ func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {
 				}
 			}
 		}
+
+		/*for obj := range chT.DataCh {
+			if obj != nil {
+				if chT.Throttle != nil {
+					time.Sleep(*chT.Throttle)
+				}
+
+				e := handler(obj)
+				if e != nil {
+					log.Panic(e.Error())
+				}
+			}
+		}*/
 	}()
 
-	wg.Wait()
+	//wg.Wait()
 }
 
 func (chT *ChannelTransport) Broadcast(nodeId uuid.UUID, obj []byte, onTrigger OnTrigger) {

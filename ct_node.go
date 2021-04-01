@@ -193,6 +193,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfDuplicates()
 
+		node.Broadcast(&co)
 		return nil
 	}
 
