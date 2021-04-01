@@ -168,7 +168,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 				node.ProcessRunning = false
 			}
 		} else {
-			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node)
+			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. NodeId: %s\n", co.Counter, node.Id)
 			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
 			node.Broadcast(&co)
@@ -178,9 +178,9 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		return
 	}
 
-	co.Ttl = co.Ttl - 1
+	co.Ttl -= 1
 	if co.Ttl <= 0 {
-		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl by nodeId\n", co.BranchId, node.Id)
+		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl by nodeId: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
 		return
 	}
@@ -194,7 +194,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		return
 	}
 
-	logf(node.Config.SuppressLogging, "Running update in node %s on branchId: %s\n", node.Id, co.BranchId)
+	logf(node.Config.SuppressLogging, "Running update in node: %s on branchId: %s\n", node.Id, co.BranchId)
 	node.Diagnosis.IncrementNumberOfUpdates()
 
 	defer node.Diagnosis.Timers.Time(NewTimer("UpdateCalculationObject"))
