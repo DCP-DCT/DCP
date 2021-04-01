@@ -23,11 +23,11 @@ type CtNode struct {
 	Do               DataObject                 `json:"data_object"`
 	Co               *CalculationObjectPaillier `json:"calculation_object"`
 	Ids              []string                   `json:"ids"`
-	ProcessRunning bool `json:"process_running"`
-	HandledBranchIds map[uuid.UUID]struct{} `json:"handled_branch_ids"`
-	TransportLayer   *ChannelTransport      `json:"-"`
-	Config           *CtNodeConfig          `json:"config"`
-	Diagnosis        *Diagnosis             `json:"diagnosis"`
+	ProcessRunning   bool                       `json:"process_running"`
+	HandledBranchIds map[uuid.UUID]struct{}     `json:"handled_branch_ids"`
+	TransportLayer   *ChannelTransport          `json:"-"`
+	Config           *CtNodeConfig              `json:"config"`
+	Diagnosis        *Diagnosis                 `json:"diagnosis"`
 }
 
 func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
@@ -56,7 +56,7 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 			Ttl:      config.CoTTL,
 		},
 		Ids:              ids,
-		ProcessRunning: false,
+		ProcessRunning:   false,
 		HandledBranchIds: make(map[uuid.UUID]struct{}),
 		TransportLayer:   t,
 		Config:           config,
@@ -83,7 +83,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 		return
 	}
 
-	logf(node.Config.SuppressLogging, "Broadcasting Node: %s BranchId: %s, Current count: %d\n", node.Id.String(), objToBroadcast.BranchId, objToBroadcast.Counter)
+	logf(node.Config.SuppressLogging, "Broadcasting Node: %s BranchId: %s, Current count: %d, Current TTL %d\n", node.Id.String(), objToBroadcast.BranchId, objToBroadcast.Counter, objToBroadcast.Ttl)
 	node.Diagnosis.IncrementNumberOfBroadcasts()
 
 	node.TransportLayer.Broadcast(node.Id, b, func() {
@@ -186,7 +186,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 	}
 
 	if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
-		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s. Current TTL: %d\n", co.BranchId, node.Id, co.Ttl)
+		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfDuplicates()
 
 		node.Broadcast(&co)
