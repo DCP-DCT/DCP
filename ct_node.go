@@ -23,7 +23,7 @@ type CtNode struct {
 	Do               DataObject                 `json:"data_object"`
 	Co               *CalculationObjectPaillier `json:"calculation_object"`
 	Ids              []string                   `json:"ids"`
-	coProcessRunning bool
+	ProcessRunning bool `json:"process_running"`
 	HandledBranchIds map[uuid.UUID]struct{} `json:"handled_branch_ids"`
 	TransportLayer   *ChannelTransport      `json:"-"`
 	Config           *CtNodeConfig          `json:"config"`
@@ -56,7 +56,7 @@ func NewCtNode(ids []string, config *CtNodeConfig) *CtNode {
 			Ttl:      config.CoTTL,
 		},
 		Ids:              ids,
-		coProcessRunning: false,
+		ProcessRunning: false,
 		HandledBranchIds: make(map[uuid.UUID]struct{}),
 		TransportLayer:   t,
 		Config:           config,
@@ -87,10 +87,10 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	node.Diagnosis.IncrementNumberOfBroadcasts()
 
 	node.TransportLayer.Broadcast(node.Id, b, func() {
-		if externalCo == nil && !node.coProcessRunning {
-			node.coProcessRunning = true
-			node.Do.LatestPk = new(paillier.PublicKey)
+		if externalCo == nil && !node.ProcessRunning {
+			node.ProcessRunning = true
 
+			node.Do.LatestPk = new(paillier.PublicKey)
 			*node.Do.LatestPk = *objToBroadcast.PublicKey
 			node.Do.Iteration = node.Do.Iteration + 1
 		}
@@ -109,7 +109,7 @@ func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
 		case <-stop:
 			return
 		default:
-			if node.coProcessRunning {
+			if node.ProcessRunning {
 				break
 			}
 
@@ -134,8 +134,8 @@ func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
 func (node *CtNode) HandleCalculationObject(data []byte) {
 	defer node.Diagnosis.Timers.Time(NewTimer("HandleCalculationObject"))
 
-	var co = &CalculationObjectPaillier{}
-	e := json.Unmarshal(data, co)
+	var co = CalculationObjectPaillier{}
+	e := json.Unmarshal(data, &co)
 	if e != nil {
 		log.Panic(e.Error())
 		return
@@ -152,18 +152,18 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 
 			if node.Co.Counter < co.Counter {
 				logf(node.Config.SuppressLogging, "Updating accepted DO in node %s\n", node.Id)
-				node.UpdateDo(*node.Co, *co)
+				node.UpdateDo(*node.Co, co)
 
 				node.Co.Counter = co.Counter
 
 				*node.Co.Cipher = *co.Cipher
-				node.coProcessRunning = false
+				node.ProcessRunning = false
 			}
 		} else {
 			logf(node.Config.SuppressLogging, "Too few participants (%d) to satisfy privacy. Still listening\n", co.Counter)
 			node.Diagnosis.IncrementNumberOgRejectedDueToThreshold()
 
-			node.Broadcast(co)
+			node.Broadcast(&co)
 		}
 
 		node.Diagnosis.Timers.Time(s, st)
@@ -185,7 +185,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		logf(node.Config.SuppressLogging, "BranchId: %s already handled\n", co.BranchId.String())
 		node.Diagnosis.IncrementNumberOfDuplicates()
 
-		node.Broadcast(co)
+		node.Broadcast(&co)
 
 		return
 	}
@@ -209,12 +209,8 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 	node.Diagnosis.Control.RegisterContribution(co.Id, *co.BranchId, len(node.Ids))
 	node.HandledBranchIds[*co.BranchId] = struct{}{}
 
-	node.Broadcast(co)
+	node.Broadcast(&co)
 	return
-}
-
-func (node *CtNode) IsCalculationProcessRunning() bool {
-	return node.coProcessRunning
 }
 
 func (node *CtNode) UpdateDo(old CalculationObjectPaillier, new CalculationObjectPaillier) {
