@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -77,6 +78,7 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 
 	b, e := json.Marshal(objToBroadcast)
 	if e != nil {
+		log.Panic(e.Error())
 		return
 	}
 
@@ -113,7 +115,7 @@ func (node *CtNode) RunRandomTrigger(stop chan struct{}) {
 			if nr == 5 {
 				e := InitRoutine(PrepareIdLenCalculation, node)
 				if e != nil {
-					fmt.Println(e)
+					log.Panic(e.Error())
 					return
 				}
 
@@ -132,28 +134,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 	var co = &CalculationObjectPaillier{}
 	e := json.Unmarshal(data, co)
 	if e != nil {
-		return
-	}
-
-	co.Ttl = co.Ttl - 1
-	if co.Ttl <= 0 {
-		logf(node.Config.SuppressLogging, "CalculationObject: %s dropped due to expired ttl\n", co.Id.String())
-		node.Diagnosis.IncrementNumberOfPacketsDropped()
-		return
-	}
-
-	if co.BranchId == nil {
-		// First handle, set branch
-		newBranchId := uuid.New()
-		co.BranchId = &newBranchId
-	} else if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
-		logf(node.Config.SuppressLogging, "BranchId: %s already handled\n", co.BranchId.String())
-		node.Diagnosis.IncrementNumberOfDuplicates()
-
-		if node.Co.Id != co.Id {
-			node.Broadcast(co)
-		}
-
+		log.Panic(e.Error())
 		return
 	}
 
@@ -187,6 +168,26 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 		return
 	}
 
+	co.Ttl = co.Ttl - 1
+	if co.Ttl <= 0 {
+		logf(node.Config.SuppressLogging, "CalculationObject: %s dropped due to expired ttl\n", co.Id.String())
+		node.Diagnosis.IncrementNumberOfPacketsDropped()
+		return
+	}
+
+	if co.BranchId == nil {
+		// First handle, set branch
+		newBranchId := uuid.New()
+		co.BranchId = &newBranchId
+	} else if _, exist := node.HandledBranchIds[*co.BranchId]; exist {
+		logf(node.Config.SuppressLogging, "BranchId: %s already handled\n", co.BranchId.String())
+		node.Diagnosis.IncrementNumberOfDuplicates()
+
+		node.Broadcast(co)
+
+		return
+	}
+
 	logf(node.Config.SuppressLogging, "Running update in node %s\n", node.Id)
 	node.Diagnosis.IncrementNumberOfUpdates()
 
@@ -195,7 +196,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 	idLen := len(node.Ids)
 	cipher, e := co.Encrypt(idLen)
 	if e != nil {
-		fmt.Println(e.Error())
+		log.Panic(e.Error())
 		return
 	}
 
