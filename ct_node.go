@@ -180,7 +180,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) {
 
 	co.Ttl = co.Ttl - 1
 	if co.Ttl <= 0 {
-		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl\n", co.BranchId)
+		logf(node.Config.SuppressLogging, "CalculationObject branchId: %s dropped due to expired ttl by nodeId\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
 		return
 	}
