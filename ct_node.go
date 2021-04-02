@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/didiercrunch/paillier"
 	"github.com/google/uuid"
+	"github.com/ivpusic/grpool"
 	"log"
 )
 
@@ -26,11 +27,12 @@ type CtNode struct {
 	TransportLayer   *ChannelTransport          `json:"-"`
 	Config           CtNodeConfig               `json:"config"`
 	Diagnosis        *Diagnosis                 `json:"diagnosis"`
+	WorkerPool       *grpool.Pool               `json:"-"`
 }
 
-func NewCtNode(ids []string, config CtNodeConfig) *CtNode {
+func NewCtNode(ids []string, config CtNodeConfig, poolPtr *grpool.Pool) *CtNode {
 	t := &ChannelTransport{
-		DataCh:          make(chan []byte, 1000),
+		DataCh:          make(chan []byte, 30000),
 		ReachableNodes:  make(map[chan []byte]struct{}),
 		SuppressLogging: config.SuppressLogging,
 		Throttle:        config.Throttle,
@@ -58,6 +60,7 @@ func NewCtNode(ids []string, config CtNodeConfig) *CtNode {
 		TransportLayer:   t,
 		Config:           config,
 		Diagnosis:        NewDiagnosis(),
+		WorkerPool:       poolPtr,
 	}
 }
 
@@ -83,15 +86,17 @@ func (node *CtNode) Broadcast(externalCo *CalculationObjectPaillier) {
 	logf(node.Config.SuppressLogging, "Broadcasting Node: %s BranchId: %s, Current count: %d, Current TTL %d\n", node.Id.String(), objToBroadcast.BranchId, objToBroadcast.Counter, objToBroadcast.Ttl)
 	node.Diagnosis.IncrementNumberOfBroadcasts()
 
-	go node.TransportLayer.Broadcast(node.Id, b, func() {
-		if externalCo == nil && !node.ProcessRunning {
-			node.ProcessRunning = true
+	node.WorkerPool.JobQueue <- func() {
+		node.TransportLayer.Broadcast(node.Id, b, func() {
+			if externalCo == nil && !node.ProcessRunning {
+				node.ProcessRunning = true
 
-			node.Do.LatestPk = new(paillier.PublicKey)
-			*node.Do.LatestPk = *objToBroadcast.PublicKey
-			node.Do.Iteration = node.Do.Iteration + 1
-		}
-	})
+				node.Do.LatestPk = new(paillier.PublicKey)
+				*node.Do.LatestPk = *objToBroadcast.PublicKey
+				node.Do.Iteration = node.Do.Iteration + 1
+			}
+		})
+	}
 }
 
 func (node *CtNode) Listen() {
