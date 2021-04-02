@@ -9,6 +9,7 @@ type CtNodeConfig struct {
 	SuppressLogging           bool
 	Throttle                  *time.Duration
 	CoTTL                     int
+	IncludeHistory            bool
 }
 
 func NewCtNodeConfig() CtNodeConfig {
@@ -17,6 +18,7 @@ func NewCtNodeConfig() CtNodeConfig {
 		SuppressLogging:           false,
 		Throttle:                  nil,
 		CoTTL:                     defaultCalculationObjectTTL,
+		IncludeHistory:            true,
 	}
 }
 

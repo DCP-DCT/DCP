@@ -166,7 +166,10 @@ func (node *CtNode) updateCalculationObject(co *CalculationObjectPaillier) error
 	co.Add(cipher)
 	co.Counter = co.Counter + 1
 
-	node.Diagnosis.Control.RegisterContribution(co.Id, co.BranchId, len(node.Ids))
+	if node.Config.IncludeHistory {
+		node.Diagnosis.Control.RegisterContribution(co.Id, co.BranchId, len(node.Ids))
+	}
+
 	node.HandledBranchIds[co.BranchId] = struct{}{}
 
 	return nil
