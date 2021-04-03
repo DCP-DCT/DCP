@@ -23,7 +23,7 @@ type CtNode struct {
 	Co               *CalculationObjectPaillier `json:"calculation_object"`
 	Ids              []string                   `json:"ids"`
 	ProcessRunning   bool                       `json:"process_running"`
-	HandledBranchIds map[uuid.UUID]struct{}     `json:"handled_branch_ids"`
+	HandledBranchIds map[uuid.UUID]struct{}     `json:"-"`
 	TransportLayer   *ChannelTransport          `json:"-"`
 	Config           CtNodeConfig               `json:"config"`
 	Diagnosis        *Diagnosis                 `json:"diagnosis"`
