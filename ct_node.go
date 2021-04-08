@@ -23,6 +23,7 @@ type CtNode struct {
 	Co               *CalculationObjectPaillier `json:"calculation_object"`
 	Ids              []string                   `json:"ids"`
 	ProcessRunning   bool                       `json:"process_running"`
+	BridgeNode       bool                       `json:"bridge_node"`
 	HandledBranchIds map[uuid.UUID]struct{}     `json:"-"`
 	TransportLayer   *ChannelTransport          `json:"-"`
 	Config           CtNodeConfig               `json:"config"`
@@ -56,6 +57,7 @@ func NewCtNode(ids []string, config CtNodeConfig, poolPtr *grpool.Pool) *CtNode 
 		},
 		Ids:              ids,
 		ProcessRunning:   false,
+		BridgeNode:       false,
 		HandledBranchIds: make(map[uuid.UUID]struct{}),
 		TransportLayer:   t,
 		Config:           config,
@@ -141,8 +143,8 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 	if _, exist := node.HandledBranchIds[co.BranchId]; exist {
 		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfDuplicates()
+		node.Diagnosis.IncrementNumberOfPacketsDropped()
 
-		node.Broadcast(&co)
 		return nil
 	}
 
