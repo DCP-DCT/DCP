@@ -144,17 +144,18 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfDuplicates()
 
-		if node.Config.DropHandledAfter == -1 {
+		/*if node.Config.DropHandledAfter == -1 {
 			node.Broadcast(&co)
 			return nil
 		}
 
 		if node.HandledBranchIds[co.BranchId] >= node.Config.DropHandledAfter {
-			node.Diagnosis.IncrementNumberOfPacketsDropped()
 			return nil
-		}
+		}*/
 
-		node.Broadcast(&co)
+		node.Diagnosis.IncrementNumberOfPacketsDropped()
+
+		//node.Broadcast(&co)
 		return nil
 	}
 
