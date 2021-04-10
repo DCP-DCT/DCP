@@ -10,6 +10,7 @@ type CtNodeConfig struct {
 	Throttle                  *time.Duration
 	CoTTL                     int
 	IncludeHistory            bool
+	DropHandledAfter          int
 }
 
 func NewCtNodeConfig() CtNodeConfig {
@@ -19,6 +20,7 @@ func NewCtNodeConfig() CtNodeConfig {
 		Throttle:                  nil,
 		CoTTL:                     defaultCalculationObjectTTL,
 		IncludeHistory:            true,
+		DropHandledAfter:          -1,
 	}
 }
 

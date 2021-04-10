@@ -24,7 +24,7 @@ type CtNode struct {
 	Ids              []string                   `json:"ids"`
 	ProcessRunning   bool                       `json:"process_running"`
 	BridgeNode       bool                       `json:"bridge_node"`
-	HandledBranchIds map[uuid.UUID]struct{}     `json:"-"`
+	HandledBranchIds map[uuid.UUID]int          `json:"-"`
 	TransportLayer   *ChannelTransport          `json:"-"`
 	Config           CtNodeConfig               `json:"config"`
 	Diagnosis        *Diagnosis                 `json:"diagnosis"`
@@ -58,7 +58,7 @@ func NewCtNode(ids []string, config CtNodeConfig, poolPtr *grpool.Pool) *CtNode 
 		Ids:              ids,
 		ProcessRunning:   false,
 		BridgeNode:       false,
-		HandledBranchIds: make(map[uuid.UUID]struct{}),
+		HandledBranchIds: make(map[uuid.UUID]int),
 		TransportLayer:   t,
 		Config:           config,
 		Diagnosis:        NewDiagnosis(),
@@ -143,8 +143,18 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 	if _, exist := node.HandledBranchIds[co.BranchId]; exist {
 		logf(node.Config.SuppressLogging, "BranchId: %s already handled in node: %s\n", co.BranchId, node.Id)
 		node.Diagnosis.IncrementNumberOfDuplicates()
-		node.Diagnosis.IncrementNumberOfPacketsDropped()
 
+		if node.Config.DropHandledAfter == -1 {
+			node.Broadcast(&co)
+			return nil
+		}
+
+		if node.HandledBranchIds[co.BranchId] >= node.Config.DropHandledAfter {
+			node.Diagnosis.IncrementNumberOfPacketsDropped()
+			return nil
+		}
+
+		node.Broadcast(&co)
 		return nil
 	}
 
@@ -177,7 +187,11 @@ func (node *CtNode) updateCalculationObject(co *CalculationObjectPaillier) error
 		node.Diagnosis.Control.RegisterContribution(co.Id, co.BranchId, len(node.Ids))
 	}
 
-	node.HandledBranchIds[co.BranchId] = struct{}{}
+	if _, exist := node.HandledBranchIds[co.BranchId]; exist {
+		node.HandledBranchIds[co.BranchId] = node.HandledBranchIds[co.BranchId] + 1
+	} else {
+		node.HandledBranchIds[co.BranchId] = 1
+	}
 
 	return nil
 }
