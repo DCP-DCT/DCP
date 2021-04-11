@@ -155,7 +155,7 @@ func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 		node.Diagnosis.IncrementNumberOfPacketsDropped()
 
-		//node.Broadcast(&co)
+		node.Broadcast(&co)
 		return nil
 	}
 
