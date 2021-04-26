@@ -16,10 +16,10 @@ type Transport interface {
 }
 
 type ChannelTransport struct {
-	DataCh          chan []byte
-	ReachableNodes  map[chan []byte]struct{}
-	SuppressLogging bool
-	Throttle        *time.Duration
+	DataCh          chan []byte `json:"-"`
+	ReachableNodes  map[chan []byte]struct{} `json:"-"`
+	SuppressLogging bool `json:"-"`
+	Throttle        *time.Duration `json:"-"`
 }
 
 func (chT *ChannelTransport) Listen(nodeId uuid.UUID, handler Handler) {

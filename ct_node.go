@@ -1,6 +1,7 @@
 package DCP
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"github.com/didiercrunch/paillier"
@@ -108,6 +109,8 @@ func (node *CtNode) Listen() {
 func (node *CtNode) HandleCalculationObject(data []byte) error {
 
 	defer node.Diagnosis.Timers.Time(NewTimer("HandleCalculationObject"))
+
+	node.Diagnosis.RegisterPacket(binary.Size(data))
 
 	var co = CalculationObjectPaillier{}
 	e := json.Unmarshal(data, &co)

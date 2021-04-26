@@ -43,6 +43,7 @@ type Diagnosis struct {
 	NumberOfPacketsDropped         int                              `json:"number_of_packets_dropped"`
 	Control                        *CalculationProcessControlEntity `json:"control"`
 	Timers                         *Timer                           `json:"timers"`
+	CoSizes						[]int	`json:"co_sizes"`
 }
 
 func NewDiagnosis() *Diagnosis {
@@ -96,4 +97,8 @@ func (d *Diagnosis) IncrementNumberOfInternalUpdates() {
 
 func (d *Diagnosis) IncrementNumberOfPacketsDropped() {
 	d.NumberOfPacketsDropped++
+}
+
+func (d *Diagnosis) RegisterPacket(len int) {
+	d.CoSizes = append(d.CoSizes, len)
 }
