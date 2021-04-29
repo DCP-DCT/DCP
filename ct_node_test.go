@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/ivpusic/grpool"
 	"testing"
 	"time"
 )
@@ -23,8 +24,11 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 	config := NewCtNodeConfig()
 	config.NodeVisitDecryptThreshold = 2
 
-	node1 := NewCtNode([]string{uuid.New().String()}, config)
-	node2 := NewCtNode([]string{uuid.New().String()}, config)
+	pool := grpool.NewPool(100, 10)
+	defer pool.Release()
+
+	node1 := NewCtNode([]string{uuid.New().String()}, config, pool)
+	node2 := NewCtNode([]string{uuid.New().String()}, config, pool)
 
 	_ = node1.Co.KeyGen()
 	_ = node2.Co.KeyGen()
@@ -42,9 +46,11 @@ func TestCtNode_HandleCalculationObjectCtChannel(t *testing.T) {
 }
 
 func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
-	node1 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig())
-	node2 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig())
-	node3 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig())
+	pool := grpool.NewPool(100, 10)
+	defer pool.Release()
+	node1 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig(), pool)
+	node2 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig(), pool)
+	node3 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig(), pool)
 
 	_ = node1.Co.KeyGen()
 	_ = node2.Co.KeyGen()
@@ -66,8 +72,10 @@ func TestCtNode_HandleCalculationObjectAbortAlreadyHandled(t *testing.T) {
 }
 
 func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
-	node1 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig())
-	node2 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig())
+	pool := grpool.NewPool(100, 10)
+	defer pool.Release()
+	node1 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig(), pool)
+	node2 := NewCtNode([]string{uuid.New().String(), uuid.New().String()}, NewCtNodeConfig(), pool)
 
 	node1.Co.Counter = defaultNodeVisitDecryptThreshold - 1
 
@@ -93,8 +101,11 @@ func TestCtNode_HandleCalculationObjectUpdateSelfNodeCo(t *testing.T) {
 }
 
 func Test_CtNodeMarshal(t *testing.T) {
+	pool := grpool.NewPool(100, 10)
+	defer pool.Release()
+
 	c := NewCtNodeConfig()
-	node := NewCtNode([]string{uuid.New().String()}, c)
+	node := NewCtNode([]string{uuid.New().String()}, c, pool)
 
 	_, e := json.Marshal(node)
 	if e != nil {

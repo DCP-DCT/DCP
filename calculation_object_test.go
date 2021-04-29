@@ -1,11 +1,16 @@
 package DCP
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
 	"math/big"
+	"math/rand"
+	"os"
+	"strconv"
 	"testing"
+	"time"
 )
 
 func TestCalculationObjectPaillier_KeyGen(t *testing.T) {
@@ -84,5 +89,49 @@ func TestCalculationObjectPaillier_Json(t *testing.T) {
 
 	if decryptedCipher.String() != "16" {
 		t.Fail()
+	}
+}
+
+func TestCalculationObjectGrowth(t *testing.T) {
+	var values [][]string
+
+	co := &CalculationObjectPaillier{
+			Id:         uuid.UUID{},
+			Counter:    0,
+			privateKey: nil,
+			PublicKey:  nil,
+			Cipher:     nil,
+		}
+
+		_ = co.KeyGen()
+
+		b, _ := json.Marshal(co)
+
+		values = append(values, []string{strconv.Itoa(co.Counter), strconv.Itoa(len(b))})
+
+	rand.Seed(time.Now().UnixNano())
+
+	for i := 0; i < 100000; i++ {
+		c, _ := co.Encrypt(rand.Intn(100-1)+1)
+		co.Add(c)
+		co.Counter = co.Counter + 1
+
+		b, _ := json.Marshal(co)
+
+		values = append(values, []string{strconv.Itoa(co.Counter), strconv.Itoa(len(b))})
+	}
+
+	w := csv.NewWriter(os.Stdout)
+	defer w.Flush()
+
+	headers := []string{"Counter", "Size"}
+	if err := w.Write(headers); err != nil {
+		panic(err.Error())
+	}
+	for _, value := range values {
+		err := w.Write(value)
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 }
